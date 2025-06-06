@@ -2,32 +2,24 @@ package main
 
 import (
 	"fmt"
-	"github.com/cli/go-gh/v2"
-	"github.com/cli/go-gh/v2/pkg/api"
 	"log"
 )
 
+const testUrl = "https://github.com/l-jax/chain/pull/1"
+
 func main() {
-	// These examples assume `gh` is installed and has been authenticated.
+	checkTestPr()
+	removeLabel(testUrl, "test")
+	checkTestPr()
+	addLabel(testUrl, "test")
+	viewPr(testUrl)
+}
 
-	// Shell out to a gh command and read its output.
-	issueList, _, err := gh.Exec("issue", "list", "--repo", "cli/cli", "--limit", "5")
+func checkTestPr() error {
+	pr, err := getPr(testUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(issueList.String())
-
-	// Use an API client to retrieve repository tags.
-	client, err := api.DefaultRESTClient()
-	if err != nil {
-		log.Fatal(err)
-	}
-	var response []struct {
-		Name string
-	}
-	err = client.Get("repos/cli/cli/tags", &response)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(response)
+	fmt.Println(pr.Title, pr.Body, pr.Mergeable, pr.Labels, pr.State)
+	return err
 }
