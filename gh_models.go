@@ -1,14 +1,15 @@
 package main
 
-type PullRequest struct {
-	Title     string  `json:"title"`
-	Body      string  `json:"body"`
-	Url       string  `json:"url"`
-	State     string  `json:"state"`
-	Labels    []Label `json:"labels"`
-	Mergeable string  `json:"mergeable"`
+type GhPullRequest struct {
+	Title       string    `json:"title"`
+	Body        string    `json:"body"`
+	HeadRefName string    `json:"headRefName"`
+	Url         string    `json:"url"`
+	State       string    `json:"state"`
+	Labels      []GhLabel `json:"labels"`
+	Mergeable   string    `json:"mergeable"`
 }
 
-type Label struct {
+type GhLabel struct {
 	Name string `json:"name"`
 }

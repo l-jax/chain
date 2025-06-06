@@ -5,15 +5,15 @@ import (
 	"github.com/cli/go-gh/v2"
 )
 
-const jsonFields = "title,body,url,state,labels,mergeable"
+const jsonFields = "title,body,url,state,labels,mergeable,headRefName"
 
-func getPr(url string) (*PullRequest, error) {
+func getPr(url string) (*GhPullRequest, error) {
 	out, _, err := gh.Exec("pr", "view", url, "--json", jsonFields)
 	if err != nil {
 		return nil, err
 	}
 
-	var pr PullRequest
+	var pr GhPullRequest
 	err = json.Unmarshal(out.Bytes(), &pr)
 	if err != nil {
 		return nil, err
@@ -22,13 +22,13 @@ func getPr(url string) (*PullRequest, error) {
 	return &pr, nil
 }
 
-func listPrs(label, state string) ([]PullRequest, error) {
-	out, _, err := gh.Exec("pr", "list", "--author", "@me", "--label", label, "--state", state, "--json", jsonFields)
+func listActivePrs() ([]GhPullRequest, error) {
+	out, _, err := gh.Exec("pr", "list", "--author", "@me", "--json", jsonFields)
 	if err != nil {
 		return nil, err
 	}
 
-	var prs []PullRequest
+	var prs []GhPullRequest
 	err = json.Unmarshal(out.Bytes(), &prs)
 
 	if err != nil {
