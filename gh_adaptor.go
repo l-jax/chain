@@ -18,18 +18,12 @@ func getPullRequests() ([]list.Item, error) {
 			return nil, err
 		}
 
-		pullRequests = append(pullRequests,
-			item{
-				pr.Title,
-				pr.HeadRefName,
-				state,
-				false,
-			})
+		pullRequests = append(pullRequests, NewPull(pr.Title, pr.HeadRefName, state, nil))
 	}
 	return pullRequests, nil
 }
 
-func mapState(state string) (State, error) {
+func mapState(state string) (state, error) {
 	switch state {
 	case "OPEN":
 		return StateOpen, nil
