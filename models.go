@@ -1,38 +1,34 @@
 package main
 
-import (
-	"slices"
+type State int
+
+const (
+	StateOpen State = iota
+	StateMerged
+	StateClosed
+	StateReleased
 )
 
-type PullRequest struct {
-	title      string
-	branch     string
-	conditions []Condition
+var stateName = map[State]string{
+	StateOpen:     "open",
+	StateMerged:   "merged",
+	StateClosed:   "closed",
+	StateReleased: "released",
 }
 
-type Condition interface {
-	success() bool
+func (s State) String() string {
+	return stateName[s]
 }
 
-type StateCondition struct {
-	currentState string
-	targetState  string
+type item struct {
+	title   string
+	branch  string
+	state   State
+	chained bool
 }
 
-func (s *StateCondition) success() bool {
-	return s.currentState == s.targetState
-}
-
-type DependencyCondition struct {
-	dependency *PullRequest
-	conditions []Condition
-}
-
-func (d *DependencyCondition) success() bool {
-	for _, v := range slices.All(d.conditions) {
-		if !v.success() {
-			return false
-		}
-	}
-	return true
-}
+func (i item) Title() string       { return i.branch }
+func (i item) Description() string { return i.title }
+func (i item) State() State        { return i.state }
+func (i item) Chained() bool       { return i.chained }
+func (i item) FilterValue() string { return i.title }
