@@ -5,6 +5,15 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 )
 
+func getFakePullRequests() []list.Item {
+	return []list.Item{
+		Pull{"my pull request", "some-branch", StateOpen, nil},
+		Pull{"some other pr", "some-different-branch", StateReleased, nil},
+		Pull{"a change", "my-branch", StateMerged, nil},
+		Pull{"code", "some-other-branch", StateOpen, nil},
+	}
+}
+
 func getPullRequests() ([]list.Item, error) {
 	prs, err := listActivePrs()
 	if err != nil {
