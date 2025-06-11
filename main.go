@@ -11,14 +11,6 @@ import (
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
-type item struct {
-	title, desc string
-}
-
-func (i item) Title() string       { return i.title }
-func (i item) Description() string { return i.desc }
-func (i item) FilterValue() string { return i.title }
-
 type model struct {
 	list list.Model
 }
@@ -48,9 +40,9 @@ func (m model) View() string {
 }
 
 func main() {
-	items := getFakePullRequests()
+	pulls := getFakePullRequests()
 
-	m := model{list: list.New(items, list.NewDefaultDelegate(), 0, 0)}
+	m := model{list: list.New(pulls, pullDelegate{}, 0, 0)}
 	m.list.Title = "CHAIN"
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
