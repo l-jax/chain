@@ -9,14 +9,6 @@ import (
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
-type item struct {
-	title, desc string
-}
-
-func (i item) Title() string       { return i.title }
-func (i item) Description() string { return i.desc }
-func (i item) FilterValue() string { return i.title }
-
 type model struct {
 	active list.Model
 	chain  *tree.Tree
@@ -24,9 +16,8 @@ type model struct {
 
 func newModel() model {
 	prs := getActivePullRequests()
-	
-	t := tree.Root(".").
-		Child("A", "B", "C")
+
+	t := getTree("some-example")
 
 	m := model{
 		active: list.New(prs, list.NewDefaultDelegate(), 0, 0),

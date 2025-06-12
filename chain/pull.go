@@ -14,6 +14,7 @@ func NewPull(title, branch string, state State, chain *Pull) Pull {
 func (p Pull) Title() string  { return p.title }
 func (p Pull) Branch() string { return p.branch }
 func (p Pull) State() State   { return p.state }
+func (p Pull) Chain() *Pull   { return p.chain }
 
 type State uint
 
