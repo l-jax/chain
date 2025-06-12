@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,7 +13,31 @@ import (
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 type model struct {
-	list list.Model
+	pulls  []Pull
+	active list.Model
+	chain  list.Model
+}
+
+func newModel() model {
+	pulls := getFakePullRequests()
+	active := slices.Collect(func(yield func(Pull) bool) {
+		for _, p := range pulls {
+			if p.state == StateOpen {
+				if !yield(p) {
+					return
+				}
+			}
+		}
+	})
+
+	m := model{
+		pulls:  pulls,
+		active: list.New(pullsToListItems(active), list.NewDefaultDelegate(), 0, 0),
+	}
+
+	m.active.Title = "ACTIVE"
+	m.chain.Title = "CHAIN"
+	return m
 }
 
 func (m model) Init() tea.Cmd {
@@ -27,28 +52,32 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
+		m.active.SetSize(msg.Width-h, msg.Height-v)
 	}
 
 	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
+	m.active, cmd = m.active.Update(msg)
 	return m, cmd
 }
 
 func (m model) View() string {
-	return docStyle.Render(m.list.View())
+	return lipgloss.JoinHorizontal(lipgloss.Top, docStyle.Render(m.active.View())) + "\n\n"
 }
 
 func main() {
-	pulls := getFakePullRequests()
-
-	m := model{list: list.New(pulls, pullDelegate{}, 0, 0)}
-	m.list.Title = "CHAIN"
-
+	m := newModel()
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
 	if _, err := p.Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+}
+
+func pullsToListItems(pulls []Pull) []list.Item {
+	items := make([]list.Item, len(pulls))
+	for i := range pulls {
+		items[i] = pulls[i]
+	}
+	return items
 }

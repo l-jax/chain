@@ -11,8 +11,8 @@ func NewPull(title, branch string, state state, chain *Pull) Pull {
 	return Pull{state: state, title: title, branch: branch, chain: chain}
 }
 
-func (p Pull) Title() string       { return p.branch }
-func (p Pull) Description() string { return p.title }
+func (p Pull) Title() string       { return p.title }
+func (p Pull) Description() string { return p.branch }
 func (p Pull) FilterValue() string { return p.title }
 
 type state int

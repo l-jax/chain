@@ -2,25 +2,24 @@ package main
 
 import (
 	"errors"
-	"github.com/charmbracelet/bubbles/list"
 )
 
-func getFakePullRequests() []list.Item {
-	return []list.Item{
-		Pull{"my pull request", "some-branch", StateOpen, nil},
-		Pull{"some other pr", "some-different-branch", StateReleased, nil},
-		Pull{"a change", "my-branch", StateMerged, nil},
-		Pull{"code", "some-other-branch", StateOpen, nil},
+func getFakePullRequests() []Pull {
+	return []Pull{
+		{"my pull request", "some-branch", StateOpen, nil},
+		{"some other pr", "some-different-branch", StateReleased, nil},
+		{"a change", "my-branch", StateMerged, nil},
+		{"code", "some-other-branch", StateOpen, nil},
 	}
 }
 
-func getPullRequests() ([]list.Item, error) {
+func getPullRequests() ([]Pull, error) {
 	prs, err := listActivePrs()
 	if err != nil {
 		return nil, err
 	}
 
-	var pullRequests []list.Item
+	var pullRequests []Pull
 	for _, pr := range prs {
 		state, err := mapState(pr.State)
 		if err != nil {

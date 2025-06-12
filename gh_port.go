@@ -23,7 +23,7 @@ func getPr(url string) (*GhPullRequest, error) {
 }
 
 func listActivePrs() ([]GhPullRequest, error) {
-	out, _, err := gh.Exec("pr", "list", "--author", "@me", "--json", jsonFields)
+	out, _, err := gh.Exec("pr", "active", "--author", "@me", "--json", jsonFields)
 	if err != nil {
 		return nil, err
 	}
