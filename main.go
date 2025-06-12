@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/charmbracelet/lipgloss/tree"
 	"os"
 	"slices"
 
@@ -15,7 +16,7 @@ var docStyle = lipgloss.NewStyle().Margin(1, 2)
 type model struct {
 	pulls  []Pull
 	active list.Model
-	chain  list.Model
+	chain  *tree.Tree
 }
 
 func newModel() model {
@@ -30,13 +31,16 @@ func newModel() model {
 		}
 	})
 
+	t := tree.Root(".").
+		Child("A", "B", "C")
+
 	m := model{
 		pulls:  pulls,
 		active: list.New(pullsToListItems(active), list.NewDefaultDelegate(), 0, 0),
+		chain:  t,
 	}
 
 	m.active.Title = "ACTIVE"
-	m.chain.Title = "CHAIN"
 	return m
 }
 
@@ -61,7 +65,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	return lipgloss.JoinHorizontal(lipgloss.Top, docStyle.Render(m.active.View())) + "\n\n"
+	return lipgloss.JoinHorizontal(lipgloss.Top,
+		docStyle.Render(m.active.View()),
+		docStyle.Render(m.chain.String()))
 }
 
 func main() {
