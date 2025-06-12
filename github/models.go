@@ -1,4 +1,4 @@
-package main
+package github
 
 type GhPullRequest struct {
 	Title       string    `json:"title"`

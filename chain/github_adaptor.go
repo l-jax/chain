@@ -1,20 +1,12 @@
-package main
+package chain
 
 import (
+	"chain/github"
 	"errors"
 )
 
-func getFakePullRequests() []Pull {
-	return []Pull{
-		{"my pull request", "some-branch", StateOpen, nil},
-		{"some other pr", "some-different-branch", StateReleased, nil},
-		{"a change", "my-branch", StateMerged, nil},
-		{"code", "some-other-branch", StateOpen, nil},
-	}
-}
-
 func getPullRequests() ([]Pull, error) {
-	prs, err := listActivePrs()
+	prs, err := github.ListActivePrs()
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +23,7 @@ func getPullRequests() ([]Pull, error) {
 	return pullRequests, nil
 }
 
-func mapState(state string) (state, error) {
+func mapState(state string) (State, error) {
 	switch state {
 	case "OPEN":
 		return StateOpen, nil
@@ -40,6 +32,6 @@ func mapState(state string) (state, error) {
 	case "MERGED":
 		return StateMerged, nil
 	default:
-		return -1, errors.New("unexpected state: " + state)
+		return 0, errors.New("unexpected state: " + state)
 	}
 }

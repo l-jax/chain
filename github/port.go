@@ -1,4 +1,4 @@
-package main
+package github
 
 import (
 	"encoding/json"
@@ -22,7 +22,7 @@ func getPr(url string) (*GhPullRequest, error) {
 	return &pr, nil
 }
 
-func listActivePrs() ([]GhPullRequest, error) {
+func ListActivePrs() ([]GhPullRequest, error) {
 	out, _, err := gh.Exec("pr", "active", "--author", "@me", "--json", jsonFields)
 	if err != nil {
 		return nil, err
