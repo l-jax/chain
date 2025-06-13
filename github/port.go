@@ -7,6 +7,28 @@ import (
 
 const jsonFields = "title,body,url,state,labels,mergeable,headRefName"
 
+type Port interface {
+	ListPrs(state string) ([]GhPullRequest, error)
+}
+
+type GhPort struct {
+}
+
+func (p *GhPort) ListPrs(state string) ([]GhPullRequest, error) {
+	out, _, err := gh.Exec("pr", state, "--author", "@me", "--json", jsonFields)
+	if err != nil {
+		return nil, err
+	}
+
+	var prs []GhPullRequest
+	err = json.Unmarshal(out.Bytes(), &prs)
+
+	if err != nil {
+		return nil, err
+	}
+	return prs, nil
+}
+
 func getPr(url string) (*GhPullRequest, error) {
 	out, _, err := gh.Exec("pr", "view", url, "--json", jsonFields)
 	if err != nil {
@@ -20,21 +42,6 @@ func getPr(url string) (*GhPullRequest, error) {
 	}
 
 	return &pr, nil
-}
-
-func ListActivePrs() ([]GhPullRequest, error) {
-	out, _, err := gh.Exec("pr", "active", "--author", "@me", "--json", jsonFields)
-	if err != nil {
-		return nil, err
-	}
-
-	var prs []GhPullRequest
-	err = json.Unmarshal(out.Bytes(), &prs)
-
-	if err != nil {
-		return nil, err
-	}
-	return prs, nil
 }
 
 func viewPr(url string) error {

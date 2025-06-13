@@ -5,8 +5,16 @@ import (
 	"errors"
 )
 
-func getPullRequests() ([]Pull, error) {
-	prs, err := github.ListActivePrs()
+type adaptor interface {
+	getPullRequests() ([]Pull, error)
+}
+
+type ghAdaptor struct {
+	port github.Port
+}
+
+func (a *ghAdaptor) getPullRequests() ([]Pull, error) {
+	prs, err := a.port.ListPrs("all")
 	if err != nil {
 		return nil, err
 	}
