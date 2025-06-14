@@ -7,8 +7,8 @@ type Pull struct {
 	chain  *Pull
 }
 
-func NewPull(title, branch string, state State, chain *Pull) Pull {
-	return Pull{state: state, title: title, branch: branch, chain: chain}
+func NewPull(title, branch string, state State, chain *Pull) *Pull {
+	return &Pull{state: state, title: title, branch: branch, chain: chain}
 }
 
 func (p Pull) Title() string  { return p.title }

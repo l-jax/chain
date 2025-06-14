@@ -8,29 +8,15 @@ import (
 const jsonFields = "title,body,url,state,labels,mergeable,headRefName"
 
 type Port interface {
-	ListPrs(state string) ([]GhPullRequest, error)
+	GetPr(branch string) (*GhPullRequest, error)
+	ListActivePrs() ([]*GhPullRequest, error)
 }
 
 type GhPort struct {
 }
 
-func (p *GhPort) ListPrs(state string) ([]GhPullRequest, error) {
-	out, _, err := gh.Exec("pr", state, "--author", "@me", "--json", jsonFields)
-	if err != nil {
-		return nil, err
-	}
-
-	var prs []GhPullRequest
-	err = json.Unmarshal(out.Bytes(), &prs)
-
-	if err != nil {
-		return nil, err
-	}
-	return prs, nil
-}
-
-func getPr(url string) (*GhPullRequest, error) {
-	out, _, err := gh.Exec("pr", "view", url, "--json", jsonFields)
+func GetPr(branch string) (*GhPullRequest, error) {
+	out, _, err := gh.Exec("pr", "view", branch, "--json", jsonFields)
 	if err != nil {
 		return nil, err
 	}
@@ -42,6 +28,21 @@ func getPr(url string) (*GhPullRequest, error) {
 	}
 
 	return &pr, nil
+}
+
+func (p *GhPort) ListActivePrs() ([]*GhPullRequest, error) {
+	out, _, err := gh.Exec("pr", "active", "--author", "@me", "--json", jsonFields)
+	if err != nil {
+		return nil, err
+	}
+
+	var prs []*GhPullRequest
+	err = json.Unmarshal(out.Bytes(), &prs)
+
+	if err != nil {
+		return nil, err
+	}
+	return prs, nil
 }
 
 func viewPr(url string) error {
