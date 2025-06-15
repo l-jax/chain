@@ -48,7 +48,7 @@ func mapPr(pr *github.GhPullRequest) (*Pull, error) {
 		return nil, fmt.Errorf("failed to map pull request %s: %w", pr.HeadRefName, err)
 	}
 
-	return NewPull(pr.Title, pr.HeadRefName, state, nil), nil
+	return NewPull(pr.Title, pr.HeadRefName, pr.Body, state), nil
 }
 
 func mapState(state string, labels []github.GhLabel) (State, error) {

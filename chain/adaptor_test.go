@@ -119,6 +119,10 @@ func assertPrMappedCorrectly(t *testing.T, got *Pull, want github.GhPullRequest,
 		t.Errorf("got branch %q want %q", got.branch, want.HeadRefName)
 	}
 
+	if got.Body() != want.Body {
+		t.Errorf("got body %s want %q", got.body, want.Body)
+	}
+
 	if got.State() != state {
 		t.Errorf("got state %q want %q", got.State(), state)
 	}
