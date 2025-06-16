@@ -7,7 +7,7 @@ import (
 )
 
 type adaptor interface {
-	getPullRequest() (*Pull, error)
+	getPullRequest(branch string) (*Pull, error)
 	listPullRequests() ([]*Pull, error)
 }
 

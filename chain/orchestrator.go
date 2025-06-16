@@ -1,5 +1,25 @@
 package chain
 
+type orchestrator struct {
+	adaptor adaptor
+}
+
+func NewOrchestrator(adaptor adaptor) *orchestrator {
+	return &orchestrator{
+		adaptor: adaptor,
+	}
+}
+
+func (o *orchestrator) GetPullRequests() ([]*Pull, error) {
+	pulls, err := o.adaptor.listPullRequests()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return pulls, nil
+}
+
 func GetOpen() []Pull {
 	// TODO: open logic
 	return []Pull{

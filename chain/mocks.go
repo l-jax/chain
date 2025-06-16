@@ -29,3 +29,19 @@ func (p *PortMock) ListActivePrs() ([]*github.GhPullRequest, error) {
 	}
 	return p.pulls, nil
 }
+
+type AdaptorMock struct {
+	pulls     []*Pull
+	listCalls int
+	getCalls  int
+}
+
+func (a *AdaptorMock) listPullRequests() ([]*Pull, error) {
+	a.listCalls++
+	return a.pulls, nil
+}
+
+func (a *AdaptorMock) getPullRequest(branch string) (*Pull, error) {
+	a.getCalls++
+	return a.pulls[0], nil
+}
