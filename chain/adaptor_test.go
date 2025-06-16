@@ -16,24 +16,36 @@ var stateMappingTests = map[State]struct {
 	StateClosed:   {branch: "my-closed-branch", ghState: "CLOSED", label: "DO NOT MERGE"},
 }
 
-func TestGetPullRequestMapsCorrectly(t *testing.T) {
+func TestMap(t *testing.T) {
 	for state, test := range stateMappingTests {
 		t.Run(state.String(), func(t *testing.T) {
-			prMock := givenAMockPr(test.branch, test.ghState, []github.GhLabel{{test.label}})
-			mockPrs := []*github.GhPullRequest{&prMock}
-			mockPort := newPortMock(mockPrs, false)
-
-			adaptor := ghAdaptor{mockPort}
-
-			pr, err := adaptor.getPullRequest(test.branch)
+			prMock := givenAMockPr(test.branch, test.ghState, []github.GhLabel{{Name: test.label}})
+			pr, err := mapPr(&prMock)
 
 			if err != nil {
-				t.Fatalf("getPullRequest returned unexpected error: %s", err)
+				t.Fatalf("unexpected error: %s", err)
 			}
 
 			assertPrMappedCorrectly(t, pr, prMock, state)
 		})
 	}
+}
+
+func TestGetPullRequestReturnsMappedPull(t *testing.T) {
+	branch := "branch-name"
+	mockPr := givenAMockPr(branch, "OPEN", nil)
+	mockPrs := []*github.GhPullRequest{&mockPr}
+
+	portMock := newPortMock(mockPrs, false)
+	adaptor := ghAdaptor{portMock}
+
+	pull, err := adaptor.getPullRequest(branch)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	assertPrMappedCorrectly(t, pull, mockPr, StateOpen)
 }
 
 func TestGetPullRequestReturnsErrorIfPortErrors(t *testing.T) {
@@ -64,12 +76,10 @@ func TestGetPullRequestReturnsErrorIfUnexpectedState(t *testing.T) {
 	assertError(t, err, want)
 }
 
-func TestGetPullRequestsMapsCorrectly(t *testing.T) {
-	branch := "branch-name"
-	state := "OPEN"
-
-	mockPr := givenAMockPr(branch, state, nil)
-	mockPrs := []*github.GhPullRequest{&mockPr}
+func TestListPullRequests(t *testing.T) {
+	mockPr := givenAMockPr("branch-1", "OPEN", nil)
+	mockPr2 := givenAMockPr("branch-2", "MERGED", nil)
+	mockPrs := []*github.GhPullRequest{&mockPr, &mockPr2}
 
 	mockPort := newPortMock(mockPrs, false)
 	adaptor := ghAdaptor{mockPort}
@@ -79,8 +89,16 @@ func TestGetPullRequestsMapsCorrectly(t *testing.T) {
 	if len(pulls) != len(mockPrs) {
 		t.Errorf("got %q pull requests want %q", len(pulls), len(mockPrs))
 	}
+}
 
-	assertPrMappedCorrectly(t, pulls[0], mockPr, StateOpen)
+func TestListPullRequestsReturnsErrorIfPortErrors(t *testing.T) {
+	portMock := newPortMock(nil, true)
+	adaptor := ghAdaptor{portMock}
+	want := "failed to fetch all: " + ErrPortMock.Error()
+
+	_, err := adaptor.listPullRequests()
+
+	assertError(t, err, want)
 }
 
 func givenAMockPr(branch, state string, labels []github.GhLabel) github.GhPullRequest {

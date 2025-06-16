@@ -24,5 +24,8 @@ func (p *PortMock) GetPr(branch string) (*github.GhPullRequest, error) {
 }
 
 func (p *PortMock) ListActivePrs() ([]*github.GhPullRequest, error) {
+	if p.shouldError {
+		return nil, ErrPortMock
+	}
 	return p.pulls, nil
 }
