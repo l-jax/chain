@@ -52,20 +52,31 @@ func mapPr(pr *github.GhPullRequest) (*Pull, error) {
 }
 
 func mapState(state string, labels []github.GhLabel) (State, error) {
-	if isReleased(labels) {
-		return StateReleased, nil
-	}
-
 	switch state {
 	case "OPEN":
+		if isBlocked(labels) {
+			return StateBlocked, nil
+		}
 		return StateOpen, nil
 	case "CLOSED":
 		return StateClosed, nil
 	case "MERGED":
+		if isReleased(labels) {
+			return StateReleased, nil
+		}
 		return StateMerged, nil
 	default:
 		return 0, fmt.Errorf("unexpected state: %s", state)
 	}
+}
+
+func isBlocked(labels []github.GhLabel) bool {
+	for _, label := range labels {
+		if label.Name == "DO NOT MERGE" {
+			return true
+		}
+	}
+	return false
 }
 
 func isReleased(labels []github.GhLabel) bool {

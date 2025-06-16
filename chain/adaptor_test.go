@@ -10,7 +10,8 @@ import (
 var stateMappingTests = map[State]struct {
 	branch, ghState, label string
 }{
-	StateOpen:     {branch: "my-open-branch", ghState: "OPEN", label: "DO NOT MERGE"},
+	StateOpen:     {branch: "my-open-branch", ghState: "OPEN", label: ""},
+	StateBlocked:  {branch: "my-blocked-branch", ghState: "OPEN", label: "DO NOT MERGE"},
 	StateMerged:   {branch: "my-merged-branch", ghState: "MERGED", label: ""},
 	StateReleased: {branch: "my-released-branch", ghState: "MERGED", label: "RELEASED"},
 	StateClosed:   {branch: "my-closed-branch", ghState: "CLOSED", label: "DO NOT MERGE"},

@@ -22,6 +22,7 @@ type State uint
 
 const (
 	StateOpen State = iota
+	StateBlocked
 	StateMerged
 	StateClosed
 	StateReleased
@@ -29,6 +30,7 @@ const (
 
 var stateName = map[State]string{
 	StateOpen:     "open",
+	StateBlocked:  "blocked",
 	StateMerged:   "merged",
 	StateClosed:   "closed",
 	StateReleased: "released",
