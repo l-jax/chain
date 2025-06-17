@@ -4,6 +4,8 @@ import (
 	"chain/github"
 	"fmt"
 	"log"
+	"regexp"
+	"strconv"
 )
 
 type adaptor interface {
@@ -41,6 +43,21 @@ func (a *ghAdaptor) listPullRequests() ([]*Pull, error) {
 	return pullRequests, nil
 }
 
+func findLinkedPrNumberInBody(body string) uint {
+	re := regexp.MustCompile(`do not merge until #(\d+)`)
+	match := re.FindStringSubmatch(body)
+
+	if match == nil {
+		return 0
+	}
+
+	number, err := strconv.ParseUint(match[1], 10, 32)
+	if err != nil {
+		return 0
+	}
+	return uint(number)
+}
+
 func mapPr(pr *github.GhPullRequest) (*Pull, error) {
 	state, err := mapState(pr.State, pr.Labels)
 
@@ -48,7 +65,9 @@ func mapPr(pr *github.GhPullRequest) (*Pull, error) {
 		return nil, fmt.Errorf("failed to map pull request %s: %w", pr.HeadRefName, err)
 	}
 
-	return NewPull(pr.Title, pr.HeadRefName, pr.Body, state, pr.Number), nil
+	linkedPrNumber := findLinkedPrNumberInBody(pr.Body)
+
+	return NewPull(pr.Title, pr.HeadRefName, pr.Body, state, pr.Number, linkedPrNumber), nil
 }
 
 func mapState(state string, labels []github.GhLabel) (State, error) {

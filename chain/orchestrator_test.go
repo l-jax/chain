@@ -5,7 +5,7 @@ import "testing"
 func TestGetPullRequests(t *testing.T) {
 
 	want := []*Pull{
-		{"my pull request", "some-branch", "some body", StateOpen, 2, nil},
+		{"my pull request", "some-branch", "some body", StateOpen, 2, 0},
 	}
 
 	adaptor := &AdaptorMock{pulls: want}
@@ -27,9 +27,9 @@ func TestGetPullRequests(t *testing.T) {
 }
 
 func TestGetChain(t *testing.T) {
-	releasedPr := &Pull{"remove something", "some-branch-123", "some body", StateReleased, 1, nil}
-	mergedPr := &Pull{"add something", "my-branch", "do not merge until #14 is released", StateOpen, 12, nil}
-	openPr := &Pull{"do something", "branch", "some body", StateOpen, 14, nil}
+	releasedPr := &Pull{"remove something", "some-branch-123", "some body", StateReleased, 1, 0}
+	mergedPr := &Pull{"add something", "my-branch", "do not merge until #14 is released", StateOpen, 12, 14}
+	openPr := &Pull{"do something", "branch", "some body", StateOpen, 14, 0}
 
 	want := []*Pull{
 		mergedPr,

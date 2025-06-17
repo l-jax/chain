@@ -17,17 +17,28 @@ var stateMappingTests = map[State]struct {
 	StateClosed:   {branch: "my-closed-branch", ghState: "CLOSED", label: "DO NOT MERGE"},
 }
 
+func FindLinkedPrNumberInBody(t *testing.T) {
+	body := "do not merge until #123 is released"
+	want := uint(123)
+
+	got := findLinkedPrNumberInBody(body)
+
+	if got != want {
+		t.Errorf("got %q want %q", got, want)
+	}
+}
+
 func TestMap(t *testing.T) {
 	for state, test := range stateMappingTests {
 		t.Run(state.String(), func(t *testing.T) {
-			prMock := givenAMockPr(test.branch, test.ghState, []github.GhLabel{{Name: test.label}})
+			prMock := givenAMockPr(test.branch, test.ghState, []github.GhLabel{{Name: test.label}}, 0)
 			pr, err := mapPr(&prMock)
 
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
-			assertPrMappedCorrectly(t, pr, prMock, state)
+			assertPrMappedCorrectly(t, pr, prMock, state, 0)
 		})
 	}
 }
@@ -36,7 +47,7 @@ func TestMapShouldErrorIfUnexpectedState(t *testing.T) {
 	state := "unexpected"
 	want := fmt.Sprintf("failed to map pull request some-branch: unexpected state: %s", state)
 
-	mockPr := givenAMockPr("some-branch", state, nil)
+	mockPr := givenAMockPr("some-branch", state, nil, 0)
 
 	_, err := mapPr(&mockPr)
 
@@ -44,7 +55,7 @@ func TestMapShouldErrorIfUnexpectedState(t *testing.T) {
 }
 
 func TestGetPullRequestReturnsMappedPull(t *testing.T) {
-	mockPr := givenAMockPr("some-branch", "OPEN", nil)
+	mockPr := givenAMockPr("some-branch", "OPEN", nil, 1)
 	mockPrs := []*github.GhPullRequest{&mockPr}
 
 	portMock := newPortMock(mockPrs, false)
@@ -56,7 +67,7 @@ func TestGetPullRequestReturnsMappedPull(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	assertPrMappedCorrectly(t, pull, mockPr, StateOpen)
+	assertPrMappedCorrectly(t, pull, mockPr, StateOpen, 1)
 }
 
 func TestGetPullRequestReturnsErrorIfPortErrors(t *testing.T) {
@@ -71,8 +82,8 @@ func TestGetPullRequestReturnsErrorIfPortErrors(t *testing.T) {
 }
 
 func TestListPullRequests(t *testing.T) {
-	mockPr := givenAMockPr("branch-1", "OPEN", nil)
-	mockPr2 := givenAMockPr("branch-2", "MERGED", nil)
+	mockPr := givenAMockPr("branch-1", "OPEN", nil, 0)
+	mockPr2 := givenAMockPr("branch-2", "MERGED", nil, 0)
 	mockPrs := []*github.GhPullRequest{&mockPr, &mockPr2}
 
 	mockPort := newPortMock(mockPrs, false)
@@ -95,10 +106,10 @@ func TestListPullRequestsReturnsErrorIfPortErrors(t *testing.T) {
 	assertError(t, err, want)
 }
 
-func givenAMockPr(branch, state string, labels []github.GhLabel) github.GhPullRequest {
+func givenAMockPr(branch, state string, labels []github.GhLabel, chain uint) github.GhPullRequest {
 	mockPr := github.GhPullRequest{
 		Title:       "mock",
-		Body:        "body",
+		Body:        fmt.Sprintf("do not merge until #%d is released", chain),
 		HeadRefName: branch,
 		Url:         "github.com",
 		State:       state,
@@ -122,7 +133,7 @@ func assertError(t *testing.T, got error, want string) {
 	}
 }
 
-func assertPrMappedCorrectly(t *testing.T, got *Pull, want github.GhPullRequest, state State) {
+func assertPrMappedCorrectly(t *testing.T, got *Pull, want github.GhPullRequest, state State, chain uint) {
 	t.Helper()
 	if got.Title() != want.Title {
 		t.Errorf("got title %q want %q", got.title, want.Title)
@@ -140,7 +151,7 @@ func assertPrMappedCorrectly(t *testing.T, got *Pull, want github.GhPullRequest,
 		t.Errorf("got state %q want %q", got.State(), state)
 	}
 
-	if got.Chain() != nil {
-		t.Errorf("got chain %s want nil", got.Chain().branch)
+	if got.Chain() != chain {
+		t.Errorf("got chain %d want %d", got.Chain(), chain)
 	}
 }
