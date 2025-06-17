@@ -2,21 +2,22 @@ package github
 
 import (
 	"encoding/json"
+
 	"github.com/cli/go-gh/v2"
 )
 
-const jsonFields = "title,body,url,state,labels,mergeable,headRefName"
+const jsonFields = "title,body,url,state,labels,mergeable,headRefName,number"
 
 type Port interface {
-	GetPr(branch string) (*GhPullRequest, error)
+	GetPr(number string) (*GhPullRequest, error)
 	ListActivePrs() ([]*GhPullRequest, error)
 }
 
 type GhPort struct {
 }
 
-func GetPr(branch string) (*GhPullRequest, error) {
-	out, _, err := gh.Exec("pr", "view", branch, "--json", jsonFields)
+func GetPr(number string) (*GhPullRequest, error) {
+	out, _, err := gh.Exec("pr", "view", number, "--json", jsonFields)
 	if err != nil {
 		return nil, err
 	}

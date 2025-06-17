@@ -33,11 +33,10 @@ func TestMap(t *testing.T) {
 }
 
 func TestMapShouldErrorIfUnexpectedState(t *testing.T) {
-	branch := "branch-name"
 	state := "unexpected"
-	want := fmt.Sprintf("failed to map pull request %s: unexpected state: %s", branch, state)
+	want := fmt.Sprintf("failed to map pull request some-branch: unexpected state: %s", state)
 
-	mockPr := givenAMockPr(branch, state, nil)
+	mockPr := givenAMockPr("some-branch", state, nil)
 
 	_, err := mapPr(&mockPr)
 
@@ -45,14 +44,13 @@ func TestMapShouldErrorIfUnexpectedState(t *testing.T) {
 }
 
 func TestGetPullRequestReturnsMappedPull(t *testing.T) {
-	branch := "branch-name"
-	mockPr := givenAMockPr(branch, "OPEN", nil)
+	mockPr := givenAMockPr("some-branch", "OPEN", nil)
 	mockPrs := []*github.GhPullRequest{&mockPr}
 
 	portMock := newPortMock(mockPrs, false)
 	adaptor := ghAdaptor{portMock}
 
-	pull, err := adaptor.getPullRequest(branch)
+	pull, err := adaptor.getPullRequest(1)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
@@ -62,13 +60,12 @@ func TestGetPullRequestReturnsMappedPull(t *testing.T) {
 }
 
 func TestGetPullRequestReturnsErrorIfPortErrors(t *testing.T) {
-	branch := "branch-name"
-	want := fmt.Sprintf("failed to fetch branch %s: %s", branch, ErrPortMock)
+	want := fmt.Sprintf("failed to fetch pull 1: %s", ErrPortMock)
 
 	portMock := newPortMock(nil, true)
 	adaptor := ghAdaptor{portMock}
 
-	_, err := adaptor.getPullRequest(branch)
+	_, err := adaptor.getPullRequest(1)
 
 	assertError(t, err, want)
 }
@@ -107,6 +104,7 @@ func givenAMockPr(branch, state string, labels []github.GhLabel) github.GhPullRe
 		State:       state,
 		Labels:      labels,
 		Mergeable:   "true",
+		Number:      1,
 	}
 	return mockPr
 }

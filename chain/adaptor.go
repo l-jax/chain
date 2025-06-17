@@ -7,7 +7,7 @@ import (
 )
 
 type adaptor interface {
-	getPullRequest(branch string) (*Pull, error)
+	getPullRequest(number uint) (*Pull, error)
 	listPullRequests() ([]*Pull, error)
 }
 
@@ -15,10 +15,10 @@ type ghAdaptor struct {
 	port github.Port
 }
 
-func (a *ghAdaptor) getPullRequest(branch string) (*Pull, error) {
-	pr, err := a.port.GetPr(branch)
+func (a *ghAdaptor) getPullRequest(number uint) (*Pull, error) {
+	pr, err := a.port.GetPr(fmt.Sprintf("%d", number))
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch branch %s: %w", branch, err)
+		return nil, fmt.Errorf("failed to fetch pull %d: %w", number, err)
 	}
 	return mapPr(pr)
 }
@@ -48,7 +48,7 @@ func mapPr(pr *github.GhPullRequest) (*Pull, error) {
 		return nil, fmt.Errorf("failed to map pull request %s: %w", pr.HeadRefName, err)
 	}
 
-	return NewPull(pr.Title, pr.HeadRefName, pr.Body, state), nil
+	return NewPull(pr.Title, pr.HeadRefName, pr.Body, state, pr.Number), nil
 }
 
 func mapState(state string, labels []github.GhLabel) (State, error) {

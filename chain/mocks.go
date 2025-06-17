@@ -41,7 +41,13 @@ func (a *AdaptorMock) listPullRequests() ([]*Pull, error) {
 	return a.pulls, nil
 }
 
-func (a *AdaptorMock) getPullRequest(branch string) (*Pull, error) {
+func (a *AdaptorMock) getPullRequest(number uint) (*Pull, error) {
 	a.getCalls++
-	return a.pulls[0], nil
+	for _, pull := range a.pulls {
+		if pull.Number() == number {
+			return pull, nil
+		}
+
+	}
+	return nil, nil
 }
