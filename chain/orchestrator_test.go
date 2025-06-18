@@ -50,9 +50,27 @@ func TestGetChain(t *testing.T) {
 		t.Fatalf("expected %d pulls, got %d", len(want), len(got))
 	}
 
-	for i, pull := range got {
-		if pull != want[i] {
-			t.Errorf("expected pull %d to be %v, got %v", i, want[i], pull)
+	for i, link := range want {
+		if link != got[link.Number()] {
+			t.Errorf("expected pull %d to be %v, got %v", i, want[i], link)
 		}
+	}
+}
+
+func TestGetChainErrorIfLooped(t *testing.T) {
+	mergedPr := &Pull{"add something", "my-branch", "do not merge until #11 is released", StateOpen, 12, 11}
+	openPr := &Pull{"do something", "branch", "some body", StateOpen, 11, 12}
+
+	adaptor := &AdaptorMock{pulls: []*Pull{openPr, mergedPr}}
+	orchestrator := orchestrator{adaptor: adaptor}
+
+	_, err := orchestrator.GetChain(12)
+
+	if err == nil {
+		t.Fatalf("expected error")
+	}
+
+	if err.Error() != ErrLoopedChain.Error() {
+		t.Fatalf("expected error %v, got %v", ErrLoopedChain, err)
 	}
 }

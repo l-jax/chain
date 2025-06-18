@@ -2,7 +2,10 @@ package chain
 
 import (
 	"chain/github"
+	"fmt"
 )
+
+var ErrLoopedChain = fmt.Errorf("chain has a loop")
 
 type orchestrator struct {
 	adaptor adaptor
@@ -27,13 +30,14 @@ func (o *orchestrator) GetPullRequests() ([]*Pull, error) {
 	return pulls, nil
 }
 
-func (o *orchestrator) GetChain(number uint) ([]*Pull, error) {
+func (o *orchestrator) GetChain(number uint) (map[uint]*Pull, error) {
 	pull, err := o.adaptor.getPullRequest(number)
-	chain := []*Pull{pull}
 
 	if err != nil {
 		return nil, err
 	}
+
+	chain := map[uint]*Pull{pull.Number(): pull}
 
 	for pull.Chain() != 0 {
 		link, err := o.adaptor.getPullRequest(pull.Chain())
@@ -42,7 +46,11 @@ func (o *orchestrator) GetChain(number uint) ([]*Pull, error) {
 			return nil, err
 		}
 
-		chain = append(chain, link)
+		if chain[link.Number()] != nil {
+			return nil, ErrLoopedChain
+		}
+
+		chain[link.Number()] = link
 		pull = link
 	}
 
