@@ -29,21 +29,22 @@ func (o *orchestrator) GetPullRequests() ([]*Pull, error) {
 
 func (o *orchestrator) GetChain(number uint) ([]*Pull, error) {
 	pull, err := o.adaptor.getPullRequest(number)
-
-	chain := make([]*Pull, 0)
-	chain = append(chain, pull)
+	chain := []*Pull{pull}
 
 	if err != nil {
 		return nil, err
 	}
 
-	linkedPull, err := o.adaptor.getPullRequest(pull.Chain())
+	for pull.Chain() != 0 {
+		link, err := o.adaptor.getPullRequest(pull.Chain())
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+
+		chain = append(chain, link)
+		pull = link
 	}
-
-	chain = append(chain, linkedPull)
 
 	return chain, nil
 }
