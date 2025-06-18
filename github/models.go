@@ -1,16 +1,16 @@
 package github
 
-type GhPullRequest struct {
-	Title       string    `json:"title"`
-	Body        string    `json:"body"`
-	HeadRefName string    `json:"headRefName"`
-	Url         string    `json:"url"`
-	State       string    `json:"state"`
-	Number      uint      `json:"number"`
-	Labels      []GhLabel `json:"labels"`
-	Mergeable   string    `json:"mergeable"`
+type PullRequest struct {
+	Title       string  `json:"title"`
+	Body        string  `json:"body"`
+	HeadRefName string  `json:"headRefName"`
+	Url         string  `json:"url"`
+	State       string  `json:"state"`
+	Number      uint    `json:"number"`
+	Labels      []Label `json:"labels"`
+	Mergeable   string  `json:"mergeable"`
 }
 
-type GhLabel struct {
+type Label struct {
 	Name string `json:"name"`
 }

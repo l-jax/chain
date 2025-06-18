@@ -43,7 +43,7 @@ func getTree(root uint) (*tree.Tree, error) {
 	return tree, nil
 }
 
-func buildTree(root uint, chain map[uint]*chain.Pull) (*tree.Tree, error) {
+func buildTree(root uint, chain map[uint]*chain.PullRequest) (*tree.Tree, error) {
 	if len(chain) == 0 {
 		return nil, nil // Nothing to add if chain is nil
 	}

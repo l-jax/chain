@@ -3,44 +3,54 @@ package chain
 import (
 	"chain/github"
 	"fmt"
-	"log"
 	"regexp"
 	"strconv"
 )
 
-type adaptor interface {
-	getPullRequest(number uint) (*Pull, error)
-	listPullRequests() ([]*Pull, error)
+var (
+	ErrFailedToFetch   = fmt.Errorf("failed to fetch")
+	ErrFailedToMap     = fmt.Errorf("failed to map pull request")
+	ErrUnexpectedState = fmt.Errorf("unexpected state")
+)
+
+type GitHubPort interface {
+	GetPr(number string) (*github.PullRequest, error)
+	ListActivePrs() ([]*github.PullRequest, error)
 }
 
-type ghAdaptor struct {
-	port github.Port
+type gitHubAdaptor struct {
+	port GitHubPort
 }
 
-func (a *ghAdaptor) getPullRequest(number uint) (*Pull, error) {
+func NewGitHubAdaptor(port GitHubPort) *gitHubAdaptor {
+	return &gitHubAdaptor{
+		port: port,
+	}
+}
+
+func (a *gitHubAdaptor) getPullRequest(number uint) (*PullRequest, error) {
 	pr, err := a.port.GetPr(fmt.Sprintf("%d", number))
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch pull %d: %w", number, err)
+		return nil, fmt.Errorf("%w %d: %w", ErrFailedToFetch, number, err)
 	}
 	return mapToPull(pr)
 }
 
-func (a *ghAdaptor) listPullRequests() ([]*Pull, error) {
-	prs, err := a.port.ListActivePrs()
+func (a *gitHubAdaptor) listPullRequests() ([]*PullRequest, error) {
+	gitHubPrs, err := a.port.ListActivePrs()
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch all: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
 	}
 
-	pulls := make([]*Pull, 0, len(prs))
-	for _, pr := range prs {
-		pull, err := mapToPull(pr)
+	pullRequests := make([]*PullRequest, 0, len(gitHubPrs))
+	for _, pr := range gitHubPrs {
+		pullResult, err := mapToPull(pr)
 		if err != nil {
-			log.Println(err)
-			continue
+			return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
 		}
-		pulls = append(pulls, pull)
+		pullRequests = append(pullRequests, pullResult)
 	}
-	return pulls, nil
+	return pullRequests, nil
 }
 
 func findLink(body string) uint {
@@ -58,19 +68,19 @@ func findLink(body string) uint {
 	return uint(link)
 }
 
-func mapToPull(pr *github.GhPullRequest) (*Pull, error) {
+func mapToPull(pr *github.PullRequest) (*PullRequest, error) {
 	state, err := mapState(pr.State, pr.Labels)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to map pull request %s: %w", pr.HeadRefName, err)
+		return nil, fmt.Errorf("%w %s: %w", ErrFailedToMap, pr.HeadRefName, err)
 	}
 
 	link := findLink(pr.Body)
 
-	return NewPull(pr.Title, pr.HeadRefName, pr.Body, state, pr.Number, link), nil
+	return NewPullRequest(pr.Title, pr.HeadRefName, pr.Body, state, pr.Number, link), nil
 }
 
-func mapState(state string, labels []github.GhLabel) (State, error) {
+func mapState(state string, labels []github.Label) (State, error) {
 	switch state {
 	case "OPEN":
 		if isBlocked(labels) {
@@ -85,11 +95,11 @@ func mapState(state string, labels []github.GhLabel) (State, error) {
 		}
 		return StateMerged, nil
 	default:
-		return 0, fmt.Errorf("unexpected state: %s", state)
+		return 0, fmt.Errorf("%w: %s", ErrUnexpectedState, state)
 	}
 }
 
-func isBlocked(labels []github.GhLabel) bool {
+func isBlocked(labels []github.Label) bool {
 	for _, label := range labels {
 		if label.Name == "DO NOT MERGE" {
 			return true
@@ -98,7 +108,7 @@ func isBlocked(labels []github.GhLabel) bool {
 	return false
 }
 
-func isReleased(labels []github.GhLabel) bool {
+func isReleased(labels []github.Label) bool {
 	for _, label := range labels {
 		if label.Name == "RELEASED" {
 			return true

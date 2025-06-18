@@ -3,7 +3,6 @@ package chain
 import (
 	"chain/github"
 	"fmt"
-	"strings"
 	"testing"
 )
 
@@ -31,7 +30,7 @@ func TestFindLink(t *testing.T) {
 func TestMapToPull(t *testing.T) {
 	for state, test := range stateMappingTests {
 		t.Run(state.String(), func(t *testing.T) {
-			prMock := givenAMockPr(test.branch, test.ghState, []github.GhLabel{{Name: test.label}}, 0)
+			prMock := givenAMockPr(test.branch, test.ghState, []github.Label{{Name: test.label}}, 0)
 			pr, err := mapToPull(&prMock)
 
 			if err != nil {
@@ -47,7 +46,7 @@ func TestMapToPullShouldErrorIfUnexpectedState(t *testing.T) {
 	state := "unexpected"
 
 	mockPr := givenAMockPr("some-branch", state, nil, 0)
-	want := fmt.Sprintf("failed to map pull request some-branch: unexpected state: %s", state)
+	want := fmt.Errorf("%w some-branch: %w: %s", ErrFailedToMap, ErrUnexpectedState, state)
 
 	_, err := mapToPull(&mockPr)
 
@@ -56,10 +55,10 @@ func TestMapToPullShouldErrorIfUnexpectedState(t *testing.T) {
 
 func TestGetPullRequestReturnsMappedPull(t *testing.T) {
 	mockPr := givenAMockPr("some-branch", "OPEN", nil, 1)
-	mockPrs := []*github.GhPullRequest{&mockPr}
+	mockPrs := []*github.PullRequest{&mockPr}
 
 	portMock := newPortMock(mockPrs, false)
-	adaptor := ghAdaptor{portMock}
+	adaptor := gitHubAdaptor{portMock}
 
 	pull, err := adaptor.getPullRequest(1)
 
@@ -71,10 +70,10 @@ func TestGetPullRequestReturnsMappedPull(t *testing.T) {
 }
 
 func TestGetPullRequestReturnsErrorIfPortErrors(t *testing.T) {
-	want := fmt.Sprintf("failed to fetch pull 1: %s", ErrPortMock)
+	want := fmt.Errorf("%w 1: %w", ErrFailedToFetch, ErrPortMock)
 
 	portMock := newPortMock(nil, true)
-	adaptor := ghAdaptor{portMock}
+	adaptor := gitHubAdaptor{portMock}
 
 	_, err := adaptor.getPullRequest(1)
 
@@ -84,10 +83,10 @@ func TestGetPullRequestReturnsErrorIfPortErrors(t *testing.T) {
 func TestListPullRequests(t *testing.T) {
 	mockPr := givenAMockPr("branch-1", "OPEN", nil, 0)
 	mockPr2 := givenAMockPr("branch-2", "MERGED", nil, 0)
-	mockPrs := []*github.GhPullRequest{&mockPr, &mockPr2}
+	mockPrs := []*github.PullRequest{&mockPr, &mockPr2}
 
 	mockPort := newPortMock(mockPrs, false)
-	adaptor := ghAdaptor{mockPort}
+	adaptor := gitHubAdaptor{mockPort}
 
 	pulls, _ := adaptor.listPullRequests()
 
@@ -98,16 +97,16 @@ func TestListPullRequests(t *testing.T) {
 
 func TestListPullRequestsReturnsErrorIfPortErrors(t *testing.T) {
 	portMock := newPortMock(nil, true)
-	adaptor := ghAdaptor{portMock}
-	want := "failed to fetch all: " + ErrPortMock.Error()
+	adaptor := gitHubAdaptor{portMock}
+	want := fmt.Errorf("%w: %w", ErrFailedToFetch, ErrPortMock)
 
 	_, err := adaptor.listPullRequests()
 
 	assertError(t, err, want)
 }
 
-func givenAMockPr(branch, state string, labels []github.GhLabel, chain uint) github.GhPullRequest {
-	mockPr := github.GhPullRequest{
+func givenAMockPr(branch, state string, labels []github.Label, chain uint) github.PullRequest {
+	mockPr := github.PullRequest{
 		Title:       "mock",
 		Body:        fmt.Sprintf("do not merge until #%d is released", chain),
 		HeadRefName: branch,
@@ -120,7 +119,7 @@ func givenAMockPr(branch, state string, labels []github.GhLabel, chain uint) git
 	return mockPr
 }
 
-func assertError(t *testing.T, got error, want string) {
+func assertError(t *testing.T, got error, want error) {
 	t.Helper()
 
 	if got == nil {
@@ -128,12 +127,15 @@ func assertError(t *testing.T, got error, want string) {
 		return
 	}
 
-	if strings.Compare(got.Error(), want) != 0 {
-		t.Errorf("got error %q, want %q", got, want)
+	if got.Error() != want.Error() {
+		if unwrapped := fmt.Errorf("%w", got); unwrapped.Error() == want.Error() {
+			return
+		}
+		t.Errorf("got error %s, want %s", got.Error(), want.Error())
 	}
 }
 
-func assertPrMappedCorrectly(t *testing.T, got *Pull, want github.GhPullRequest, state State, chain uint) {
+func assertPrMappedCorrectly(t *testing.T, got *PullRequest, want github.PullRequest, state State, chain uint) {
 	t.Helper()
 	if got.Title() != want.Title {
 		t.Errorf("got title %q want %q", got.title, want.Title)
