@@ -7,26 +7,26 @@ import (
 
 var ErrLoopedChain = fmt.Errorf("chain has a loop")
 
-type adaptor interface {
+type repoService interface {
 	getPullRequest(number uint) (*PullRequest, error)
 	listPullRequests() ([]*PullRequest, error)
 }
 
-type orchestrator struct {
-	adaptor adaptor
+type chainHandler struct {
+	repoService repoService
 }
 
-func NewOrchestrator() *orchestrator {
-	adaptor := &gitHubAdaptor{
-		port: github.GitHubPort{},
+func NewChainHandler() *chainHandler {
+	service := &gitHubService{
+		gitHubClient: github.GitHubPort{},
 	}
-	return &orchestrator{
-		adaptor: adaptor,
+	return &chainHandler{
+		repoService: service,
 	}
 }
 
-func (o *orchestrator) GetPullRequests() ([]*PullRequest, error) {
-	pulls, err := o.adaptor.listPullRequests()
+func (o *chainHandler) GetPullRequests() ([]*PullRequest, error) {
+	pulls, err := o.repoService.listPullRequests()
 
 	if err != nil {
 		return nil, err
@@ -35,8 +35,8 @@ func (o *orchestrator) GetPullRequests() ([]*PullRequest, error) {
 	return pulls, nil
 }
 
-func (o *orchestrator) GetChain(number uint) (map[uint]*PullRequest, error) {
-	pull, err := o.adaptor.getPullRequest(number)
+func (o *chainHandler) GetChain(number uint) (map[uint]*PullRequest, error) {
+	pull, err := o.repoService.getPullRequest(number)
 
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (o *orchestrator) GetChain(number uint) (map[uint]*PullRequest, error) {
 	chain := map[uint]*PullRequest{pull.Number(): pull}
 
 	for pull.Chain() != 0 {
-		link, err := o.adaptor.getPullRequest(pull.Chain())
+		link, err := o.repoService.getPullRequest(pull.Chain())
 
 		if err != nil {
 			return nil, err

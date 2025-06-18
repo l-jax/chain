@@ -13,38 +13,38 @@ var (
 	ErrUnexpectedState = fmt.Errorf("unexpected state")
 )
 
-type GitHubPort interface {
+type GitHubClient interface {
 	GetPr(number string) (*github.PullRequest, error)
 	ListActivePrs() ([]*github.PullRequest, error)
 }
 
-type gitHubAdaptor struct {
-	port GitHubPort
+type gitHubService struct {
+	gitHubClient GitHubClient
 }
 
-func NewGitHubAdaptor(port GitHubPort) *gitHubAdaptor {
-	return &gitHubAdaptor{
-		port: port,
+func NewGitHubService(gitHubClient GitHubClient) *gitHubService {
+	return &gitHubService{
+		gitHubClient: gitHubClient,
 	}
 }
 
-func (a *gitHubAdaptor) getPullRequest(number uint) (*PullRequest, error) {
-	pr, err := a.port.GetPr(fmt.Sprintf("%d", number))
+func (a *gitHubService) getPullRequest(number uint) (*PullRequest, error) {
+	pr, err := a.gitHubClient.GetPr(fmt.Sprintf("%d", number))
 	if err != nil {
 		return nil, fmt.Errorf("%w %d: %w", ErrFailedToFetch, number, err)
 	}
-	return mapToPull(pr)
+	return mapToPullRequest(pr)
 }
 
-func (a *gitHubAdaptor) listPullRequests() ([]*PullRequest, error) {
-	gitHubPrs, err := a.port.ListActivePrs()
+func (a *gitHubService) listPullRequests() ([]*PullRequest, error) {
+	gitHubPrs, err := a.gitHubClient.ListActivePrs()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
 	}
 
 	pullRequests := make([]*PullRequest, 0, len(gitHubPrs))
 	for _, pr := range gitHubPrs {
-		pullResult, err := mapToPull(pr)
+		pullResult, err := mapToPullRequest(pr)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
 		}
@@ -68,7 +68,7 @@ func findLink(body string) uint {
 	return uint(link)
 }
 
-func mapToPull(pr *github.PullRequest) (*PullRequest, error) {
+func mapToPullRequest(pr *github.PullRequest) (*PullRequest, error) {
 	state, err := mapState(pr.State, pr.Labels)
 
 	if err != nil {

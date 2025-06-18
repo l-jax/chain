@@ -8,10 +8,10 @@ func TestGetPullRequests(t *testing.T) {
 		{"my pull request", "some-branch", "some body", StateOpen, 2, 0},
 	}
 
-	adaptor := &adaptorFake{pullRequests: want}
-	orchestrator := orchestrator{adaptor: adaptor}
+	service := &serviceFake{pullRequests: want}
+	handler := chainHandler{repoService: service}
 
-	got, err := orchestrator.GetPullRequests()
+	got, err := handler.GetPullRequests()
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -33,10 +33,10 @@ func TestGetChain(t *testing.T) {
 		openPr,
 	}
 
-	adaptor := &adaptorFake{pullRequests: []*PullRequest{openPr, mergedPr, releasedPr, blockedPr}}
-	orchestrator := orchestrator{adaptor: adaptor}
+	service := &serviceFake{pullRequests: []*PullRequest{openPr, mergedPr, releasedPr, blockedPr}}
+	handler := chainHandler{repoService: service}
 
-	got, err := orchestrator.GetChain(12)
+	got, err := handler.GetChain(12)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -54,13 +54,13 @@ func TestGetChain(t *testing.T) {
 }
 
 func TestGetChainErrorIfLooped(t *testing.T) {
-	adaptor := &adaptorFake{pullRequests: []*PullRequest{
+	service := &serviceFake{pullRequests: []*PullRequest{
 		{"add something", "my-branch", "do not merge until #11 is released", StateOpen, 12, 11},
 		{"do something", "branch", "do not merge until #12 is released", StateOpen, 11, 12},
 	}}
-	orchestrator := orchestrator{adaptor: adaptor}
+	handler := chainHandler{repoService: service}
 
-	_, err := orchestrator.GetChain(12)
+	_, err := handler.GetChain(12)
 
 	if err == nil {
 		t.Fatalf("expected error")
@@ -71,15 +71,15 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 	}
 }
 
-type adaptorFake struct {
+type serviceFake struct {
 	pullRequests []*PullRequest
 }
 
-func (a *adaptorFake) listPullRequests() ([]*PullRequest, error) {
+func (a *serviceFake) listPullRequests() ([]*PullRequest, error) {
 	return a.pullRequests, nil
 }
 
-func (a *adaptorFake) getPullRequest(number uint) (*PullRequest, error) {
+func (a *serviceFake) getPullRequest(number uint) (*PullRequest, error) {
 	for _, pull := range a.pullRequests {
 		if pull.Number() == number {
 			return pull, nil

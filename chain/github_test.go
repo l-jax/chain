@@ -28,17 +28,17 @@ func TestFindLink(t *testing.T) {
 	}
 }
 
-func TestMapToPull(t *testing.T) {
+func TestMapToPullRequest(t *testing.T) {
 	for state, test := range stateMappingTests {
 		t.Run(state.String(), func(t *testing.T) {
-			prMock := givenAMockPr(test.branch, test.ghState, []github.Label{{Name: test.label}}, 0)
-			pr, err := mapToPull(&prMock)
+			pr := givenAGitHubPr(test.branch, test.ghState, []github.Label{{Name: test.label}}, 0)
+			got, err := mapToPullRequest(&pr)
 
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
-			assertPrMappedCorrectly(t, pr, prMock, state, 0)
+			assertPrMappedCorrectly(t, got, pr, state, 0)
 		})
 	}
 }
@@ -46,22 +46,22 @@ func TestMapToPull(t *testing.T) {
 func TestMapToPullShouldErrorIfUnexpectedState(t *testing.T) {
 	state := "unexpected"
 
-	mockPr := givenAMockPr("some-branch", state, nil, 0)
+	mockPr := givenAGitHubPr("some-branch", state, nil, 0)
 	want := fmt.Errorf("%w some-branch: %w: %s", ErrFailedToMap, ErrUnexpectedState, state)
 
-	_, err := mapToPull(&mockPr)
+	_, err := mapToPullRequest(&mockPr)
 
 	assertError(t, err, want)
 }
 
 func TestGetPullRequestReturnsMappedPull(t *testing.T) {
-	mockPr := givenAMockPr("some-branch", "OPEN", nil, 1)
+	mockPr := givenAGitHubPr("some-branch", "OPEN", nil, 1)
 	mockPrs := []*github.PullRequest{&mockPr}
 
-	portMock := newPortMock(mockPrs, false)
-	adaptor := gitHubAdaptor{portMock}
+	clientStub := newClientStub(mockPrs, false)
+	service := gitHubService{clientStub}
 
-	pull, err := adaptor.getPullRequest(1)
+	pull, err := service.getPullRequest(1)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
@@ -70,43 +70,43 @@ func TestGetPullRequestReturnsMappedPull(t *testing.T) {
 	assertPrMappedCorrectly(t, pull, mockPr, StateOpen, 1)
 }
 
-func TestGetPullRequestReturnsErrorIfPortErrors(t *testing.T) {
-	want := fmt.Errorf("%w 1: %w", ErrFailedToFetch, errPortStub)
+func TestGetPullRequestReturnsErrorIfClientErrors(t *testing.T) {
+	want := fmt.Errorf("%w 1: %w", ErrFailedToFetch, errClientStub)
 
-	portMock := newPortMock(nil, true)
-	adaptor := gitHubAdaptor{portMock}
+	clientStub := newClientStub(nil, true)
+	service := gitHubService{clientStub}
 
-	_, err := adaptor.getPullRequest(1)
+	_, err := service.getPullRequest(1)
 
 	assertError(t, err, want)
 }
 
 func TestListPullRequests(t *testing.T) {
-	mockPr := givenAMockPr("branch-1", "OPEN", nil, 0)
-	mockPr2 := givenAMockPr("branch-2", "MERGED", nil, 0)
-	mockPrs := []*github.PullRequest{&mockPr, &mockPr2}
+	mockPr := givenAGitHubPr("branch-1", "OPEN", nil, 0)
+	mockPr2 := givenAGitHubPr("branch-2", "MERGED", nil, 0)
+	want := []*github.PullRequest{&mockPr, &mockPr2}
 
-	mockPort := newPortMock(mockPrs, false)
-	adaptor := gitHubAdaptor{mockPort}
+	clientStub := newClientStub(want, false)
+	service := gitHubService{clientStub}
 
-	pulls, _ := adaptor.listPullRequests()
+	got, _ := service.listPullRequests()
 
-	if len(pulls) != len(mockPrs) {
-		t.Errorf("got %q pull requests want %q", len(pulls), len(mockPrs))
+	if len(got) != len(want) {
+		t.Errorf("got %q pull requests want %q", len(got), len(want))
 	}
 }
 
-func TestListPullRequestsReturnsErrorIfPortErrors(t *testing.T) {
-	portMock := newPortMock(nil, true)
-	adaptor := gitHubAdaptor{portMock}
-	want := fmt.Errorf("%w: %w", ErrFailedToFetch, errPortStub)
+func TestListPullRequestsReturnsErrorIfClientErrors(t *testing.T) {
+	clientStub := newClientStub(nil, true)
+	service := gitHubService{clientStub}
+	want := fmt.Errorf("%w: %w", ErrFailedToFetch, errClientStub)
 
-	_, err := adaptor.listPullRequests()
+	_, err := service.listPullRequests()
 
 	assertError(t, err, want)
 }
 
-func givenAMockPr(branch, state string, labels []github.Label, chain uint) github.PullRequest {
+func givenAGitHubPr(branch, state string, labels []github.Label, chain uint) github.PullRequest {
 	mockPr := github.PullRequest{
 		Title:       "mock",
 		Body:        fmt.Sprintf("do not merge until #%d is released", chain),
@@ -159,26 +159,26 @@ func assertPrMappedCorrectly(t *testing.T, got *PullRequest, want github.PullReq
 	}
 }
 
-var errPortStub = errors.New("mock stub error")
+var errClientStub = errors.New("mock stub error")
 
-type portStub struct {
+type clientStub struct {
 	githubPullRequests []*github.PullRequest
 }
 
-func newPortMock(pulls []*github.PullRequest, shouldError bool) *portStub {
-	return &portStub{githubPullRequests: pulls}
+func newClientStub(pulls []*github.PullRequest, shouldError bool) *clientStub {
+	return &clientStub{githubPullRequests: pulls}
 }
 
-func (p *portStub) GetPr(branch string) (*github.PullRequest, error) {
+func (p *clientStub) GetPr(branch string) (*github.PullRequest, error) {
 	if p.githubPullRequests == nil {
-		return nil, errPortStub
+		return nil, errClientStub
 	}
 	return p.githubPullRequests[0], nil
 }
 
-func (p *portStub) ListActivePrs() ([]*github.PullRequest, error) {
+func (p *clientStub) ListActivePrs() ([]*github.PullRequest, error) {
 	if p.githubPullRequests == nil {
-		return nil, errPortStub
+		return nil, errClientStub
 	}
 	return p.githubPullRequests, nil
 }

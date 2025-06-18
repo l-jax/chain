@@ -9,8 +9,8 @@ import (
 )
 
 func getActivePullRequests() ([]list.Item, error) {
-	orchestrator := chain.NewOrchestrator()
-	pulls, err := orchestrator.GetPullRequests()
+	handler := chain.NewChainHandler()
+	pulls, err := handler.GetPullRequests()
 
 	if err != nil {
 		return nil, err //TODO: error
@@ -26,8 +26,8 @@ func getActivePullRequests() ([]list.Item, error) {
 }
 
 func getTree(root uint) (*tree.Tree, error) {
-	orchestrator := chain.NewOrchestrator()
-	chain, err := orchestrator.GetChain(root)
+	handler := chain.NewChainHandler()
+	chain, err := handler.GetChain(root)
 
 	if err != nil {
 		return nil, err //TODO: error
