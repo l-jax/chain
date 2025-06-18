@@ -1,10 +1,17 @@
 package chain
 
+import (
+	"chain/github"
+)
+
 type orchestrator struct {
 	adaptor adaptor
 }
 
-func NewOrchestrator(adaptor adaptor) *orchestrator {
+func NewOrchestrator() *orchestrator {
+	adaptor := &ghAdaptor{
+		port: github.GhPort{},
+	}
 	return &orchestrator{
 		adaptor: adaptor,
 	}

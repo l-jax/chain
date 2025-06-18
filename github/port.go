@@ -16,7 +16,7 @@ type Port interface {
 type GhPort struct {
 }
 
-func GetPr(number string) (*GhPullRequest, error) {
+func (p GhPort) GetPr(number string) (*GhPullRequest, error) {
 	out, _, err := gh.Exec("pr", "view", number, "--json", jsonFields)
 	if err != nil {
 		return nil, err
@@ -31,8 +31,8 @@ func GetPr(number string) (*GhPullRequest, error) {
 	return &pr, nil
 }
 
-func (p *GhPort) ListActivePrs() ([]*GhPullRequest, error) {
-	out, _, err := gh.Exec("pr", "active", "--author", "@me", "--json", jsonFields)
+func (p GhPort) ListActivePrs() ([]*GhPullRequest, error) {
+	out, _, err := gh.Exec("pr", "list", "--author", "@me", "--json", jsonFields)
 	if err != nil {
 		return nil, err
 	}

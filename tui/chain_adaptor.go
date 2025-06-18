@@ -2,28 +2,26 @@ package tui
 
 import (
 	"chain/chain"
+
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss/tree"
-	"slices"
 )
 
-func getActivePullRequests() []list.Item {
-	pulls := chain.GetOpen()
-	active := slices.Collect(func(yield func(pull chain.Pull) bool) {
-		for _, p := range pulls {
-			if p.State() == chain.StateOpen {
-				if !yield(p) {
-					return
-				}
-			}
-		}
-	})
+func getActivePullRequests() ([]list.Item, error) {
+	orchestrator := chain.NewOrchestrator()
+	pulls, err := orchestrator.GetPullRequests()
 
-	items := make([]list.Item, len(active))
-	for i := range active {
-		items[i] = item{active[i].Title(), active[i].Branch()}
+	if err != nil {
+		return nil, err //TODO: error
+
 	}
-	return items
+
+	items := make([]list.Item, len(pulls))
+	for i := range pulls {
+		items[i] = item{pulls[i].Title(), pulls[i].Branch()}
+	}
+
+	return items, nil
 }
 
 func getTree(branch string) *tree.Tree {
@@ -36,8 +34,8 @@ func getTree(branch string) *tree.Tree {
 
 func addBranches(root *tree.Tree, pulls []chain.Pull) error {
 	for _, pull := range pulls {
-		if pull.Branch() == root.Value() && pull.Chain() != nil {
-			treeBranch := tree.Root(pull.Chain().Branch())
+		if pull.Branch() == root.Value() && pull.Chain() != 0 {
+			treeBranch := tree.Root(pull.Chain())
 			root.Child(treeBranch)
 
 			if err := addBranches(treeBranch, pulls); err != nil {

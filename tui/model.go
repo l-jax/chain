@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"log"
+
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -15,7 +17,11 @@ type model struct {
 }
 
 func newModel() model {
-	prs := getActivePullRequests()
+	prs, err := getActivePullRequests()
+
+	if err != nil {
+		log.Fatal("Error fetching active pull requests:", err)
+	}
 
 	t := getTree("some-example")
 

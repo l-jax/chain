@@ -9,8 +9,7 @@ func TestGetPullRequests(t *testing.T) {
 	}
 
 	adaptor := &AdaptorMock{pulls: want}
-
-	orchestrator := NewOrchestrator(adaptor)
+	orchestrator := orchestrator{adaptor: adaptor}
 
 	got, err := orchestrator.GetPullRequests()
 	if err != nil {
@@ -37,7 +36,7 @@ func TestGetChain(t *testing.T) {
 	}
 
 	adaptor := &AdaptorMock{pulls: []*Pull{openPr, mergedPr, releasedPr}}
-	orchestrator := NewOrchestrator(adaptor)
+	orchestrator := orchestrator{adaptor: adaptor}
 
 	got, err := orchestrator.GetChain(12)
 
