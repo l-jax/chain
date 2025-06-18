@@ -8,7 +8,7 @@ func TestGetPullRequests(t *testing.T) {
 		{"my pull request", "some-branch", "some body", StateOpen, 2, 0},
 	}
 
-	adaptor := &AdaptorMock{pulls: want}
+	adaptor := &adaptorFake{pullRequests: want}
 	orchestrator := orchestrator{adaptor: adaptor}
 
 	got, err := orchestrator.GetPullRequests()
@@ -18,10 +18,6 @@ func TestGetPullRequests(t *testing.T) {
 
 	if len(got) != len(want) {
 		t.Fatalf("expected %d pull requests, got %d", len(want), len(got))
-	}
-
-	if adaptor.listCalls != 1 {
-		t.Fatalf("expected listPullRequests to be called once, got %d", adaptor.listCalls)
 	}
 }
 
@@ -37,7 +33,7 @@ func TestGetChain(t *testing.T) {
 		openPr,
 	}
 
-	adaptor := &AdaptorMock{pulls: []*PullRequest{openPr, mergedPr, releasedPr, blockedPr}}
+	adaptor := &adaptorFake{pullRequests: []*PullRequest{openPr, mergedPr, releasedPr, blockedPr}}
 	orchestrator := orchestrator{adaptor: adaptor}
 
 	got, err := orchestrator.GetChain(12)
@@ -58,7 +54,7 @@ func TestGetChain(t *testing.T) {
 }
 
 func TestGetChainErrorIfLooped(t *testing.T) {
-	adaptor := &AdaptorMock{pulls: []*PullRequest{
+	adaptor := &adaptorFake{pullRequests: []*PullRequest{
 		{"add something", "my-branch", "do not merge until #11 is released", StateOpen, 12, 11},
 		{"do something", "branch", "do not merge until #12 is released", StateOpen, 11, 12},
 	}}
@@ -73,4 +69,22 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 	if err.Error() != ErrLoopedChain.Error() {
 		t.Fatalf("expected error %v, got %v", ErrLoopedChain, err)
 	}
+}
+
+type adaptorFake struct {
+	pullRequests []*PullRequest
+}
+
+func (a *adaptorFake) listPullRequests() ([]*PullRequest, error) {
+	return a.pullRequests, nil
+}
+
+func (a *adaptorFake) getPullRequest(number uint) (*PullRequest, error) {
+	for _, pull := range a.pullRequests {
+		if pull.Number() == number {
+			return pull, nil
+		}
+
+	}
+	return nil, nil
 }

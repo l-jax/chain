@@ -2,6 +2,7 @@ package chain
 
 import (
 	"chain/github"
+	"errors"
 	"fmt"
 	"testing"
 )
@@ -70,7 +71,7 @@ func TestGetPullRequestReturnsMappedPull(t *testing.T) {
 }
 
 func TestGetPullRequestReturnsErrorIfPortErrors(t *testing.T) {
-	want := fmt.Errorf("%w 1: %w", ErrFailedToFetch, ErrPortMock)
+	want := fmt.Errorf("%w 1: %w", ErrFailedToFetch, errPortStub)
 
 	portMock := newPortMock(nil, true)
 	adaptor := gitHubAdaptor{portMock}
@@ -98,7 +99,7 @@ func TestListPullRequests(t *testing.T) {
 func TestListPullRequestsReturnsErrorIfPortErrors(t *testing.T) {
 	portMock := newPortMock(nil, true)
 	adaptor := gitHubAdaptor{portMock}
-	want := fmt.Errorf("%w: %w", ErrFailedToFetch, ErrPortMock)
+	want := fmt.Errorf("%w: %w", ErrFailedToFetch, errPortStub)
 
 	_, err := adaptor.listPullRequests()
 
@@ -156,4 +157,28 @@ func assertPrMappedCorrectly(t *testing.T, got *PullRequest, want github.PullReq
 	if got.Chain() != chain {
 		t.Errorf("got chain %d want %d", got.Chain(), chain)
 	}
+}
+
+var errPortStub = errors.New("mock stub error")
+
+type portStub struct {
+	githubPullRequests []*github.PullRequest
+}
+
+func newPortMock(pulls []*github.PullRequest, shouldError bool) *portStub {
+	return &portStub{githubPullRequests: pulls}
+}
+
+func (p *portStub) GetPr(branch string) (*github.PullRequest, error) {
+	if p.githubPullRequests == nil {
+		return nil, errPortStub
+	}
+	return p.githubPullRequests[0], nil
+}
+
+func (p *portStub) ListActivePrs() ([]*github.PullRequest, error) {
+	if p.githubPullRequests == nil {
+		return nil, errPortStub
+	}
+	return p.githubPullRequests, nil
 }
