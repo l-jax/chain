@@ -2,6 +2,7 @@ package tui
 
 import (
 	"chain/chain"
+	"fmt"
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss/tree"
@@ -24,24 +25,40 @@ func getActivePullRequests() ([]list.Item, error) {
 	return items, nil
 }
 
-func getTree(branch string) *tree.Tree {
-	pulls := chain.GetChain(branch)
-	root := tree.Root(branch)
+func getTree(root uint) (*tree.Tree, error) {
+	orchestrator := chain.NewOrchestrator()
+	chain, err := orchestrator.GetChain(root)
 
-	_ = addBranches(root, pulls)
-	return root
+	if err != nil {
+		return nil, err //TODO: error
+
+	}
+
+	tree, err := buildTree(root, chain)
+	if err != nil {
+		return nil, err //TODO: error
+
+	}
+
+	return tree, nil
 }
 
-func addBranches(root *tree.Tree, pulls []chain.Pull) error {
-	for _, pull := range pulls {
-		if pull.Branch() == root.Value() && pull.Chain() != 0 {
-			treeBranch := tree.Root(pull.Chain())
-			root.Child(treeBranch)
-
-			if err := addBranches(treeBranch, pulls); err != nil {
-				return err
-			}
-		}
+func buildTree(root uint, chain map[uint]*chain.Pull) (*tree.Tree, error) {
+	if len(chain) == 0 {
+		return nil, nil // Nothing to add if chain is nil
 	}
-	return nil
+
+	tree := tree.Root(chain[root].Branch())
+
+	node := root
+	for node != 0 {
+		link, exists := chain[node]
+		if !exists {
+			return nil, fmt.Errorf("linked pull request with number %d not found in chain", node)
+		}
+		tree.SetValue(link.Branch())
+		node = link.Chain()
+	}
+
+	return tree, nil
 }

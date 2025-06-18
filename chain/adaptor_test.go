@@ -17,22 +17,22 @@ var stateMappingTests = map[State]struct {
 	StateClosed:   {branch: "my-closed-branch", ghState: "CLOSED", label: "DO NOT MERGE"},
 }
 
-func FindLinkedPrNumberInBody(t *testing.T) {
+func TestFindLink(t *testing.T) {
 	body := "do not merge until #123 is released"
 	want := uint(123)
 
-	got := findLinkedPrNumberInBody(body)
+	got := findLink(body)
 
 	if got != want {
 		t.Errorf("got %q want %q", got, want)
 	}
 }
 
-func TestMap(t *testing.T) {
+func TestMapToPull(t *testing.T) {
 	for state, test := range stateMappingTests {
 		t.Run(state.String(), func(t *testing.T) {
 			prMock := givenAMockPr(test.branch, test.ghState, []github.GhLabel{{Name: test.label}}, 0)
-			pr, err := mapPr(&prMock)
+			pr, err := mapToPull(&prMock)
 
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
@@ -43,13 +43,13 @@ func TestMap(t *testing.T) {
 	}
 }
 
-func TestMapShouldErrorIfUnexpectedState(t *testing.T) {
+func TestMapToPullShouldErrorIfUnexpectedState(t *testing.T) {
 	state := "unexpected"
-	want := fmt.Sprintf("failed to map pull request some-branch: unexpected state: %s", state)
 
 	mockPr := givenAMockPr("some-branch", state, nil, 0)
+	want := fmt.Sprintf("failed to map pull request some-branch: unexpected state: %s", state)
 
-	_, err := mapPr(&mockPr)
+	_, err := mapToPull(&mockPr)
 
 	assertError(t, err, want)
 }

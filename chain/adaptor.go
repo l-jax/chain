@@ -22,7 +22,7 @@ func (a *ghAdaptor) getPullRequest(number uint) (*Pull, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch pull %d: %w", number, err)
 	}
-	return mapPr(pr)
+	return mapToPull(pr)
 }
 
 func (a *ghAdaptor) listPullRequests() ([]*Pull, error) {
@@ -31,19 +31,19 @@ func (a *ghAdaptor) listPullRequests() ([]*Pull, error) {
 		return nil, fmt.Errorf("failed to fetch all: %w", err)
 	}
 
-	var pullRequests []*Pull
+	pulls := make([]*Pull, 0, len(prs))
 	for _, pr := range prs {
-		pull, err := mapPr(pr)
+		pull, err := mapToPull(pr)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
-		pullRequests = append(pullRequests, pull)
+		pulls = append(pulls, pull)
 	}
-	return pullRequests, nil
+	return pulls, nil
 }
 
-func findLinkedPrNumberInBody(body string) uint {
+func findLink(body string) uint {
 	re := regexp.MustCompile(`do not merge until #(\d+)`)
 	match := re.FindStringSubmatch(body)
 
@@ -51,23 +51,23 @@ func findLinkedPrNumberInBody(body string) uint {
 		return 0
 	}
 
-	number, err := strconv.ParseUint(match[1], 10, 32)
+	link, err := strconv.ParseUint(match[1], 10, 32)
 	if err != nil {
 		return 0
 	}
-	return uint(number)
+	return uint(link)
 }
 
-func mapPr(pr *github.GhPullRequest) (*Pull, error) {
+func mapToPull(pr *github.GhPullRequest) (*Pull, error) {
 	state, err := mapState(pr.State, pr.Labels)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to map pull request %s: %w", pr.HeadRefName, err)
 	}
 
-	linkedPrNumber := findLinkedPrNumberInBody(pr.Body)
+	link := findLink(pr.Body)
 
-	return NewPull(pr.Title, pr.HeadRefName, pr.Body, state, pr.Number, linkedPrNumber), nil
+	return NewPull(pr.Title, pr.HeadRefName, pr.Body, state, pr.Number, link), nil
 }
 
 func mapState(state string, labels []github.GhLabel) (State, error) {

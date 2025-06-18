@@ -58,10 +58,10 @@ func TestGetChain(t *testing.T) {
 }
 
 func TestGetChainErrorIfLooped(t *testing.T) {
-	mergedPr := &Pull{"add something", "my-branch", "do not merge until #11 is released", StateOpen, 12, 11}
-	openPr := &Pull{"do something", "branch", "some body", StateOpen, 11, 12}
-
-	adaptor := &AdaptorMock{pulls: []*Pull{openPr, mergedPr}}
+	adaptor := &AdaptorMock{pulls: []*Pull{
+		{"add something", "my-branch", "do not merge until #11 is released", StateOpen, 12, 11},
+		{"do something", "branch", "do not merge until #12 is released", StateOpen, 11, 12},
+	}}
 	orchestrator := orchestrator{adaptor: adaptor}
 
 	_, err := orchestrator.GetChain(12)

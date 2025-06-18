@@ -23,7 +23,11 @@ func newModel() model {
 		log.Fatal("Error fetching active pull requests:", err)
 	}
 
-	t := getTree("some-example")
+	t, err := getTree(1)
+
+	if err != nil {
+		log.Fatal("Error fetching chain:", err)
+	}
 
 	m := model{
 		active: list.New(prs, list.NewDefaultDelegate(), 0, 0),

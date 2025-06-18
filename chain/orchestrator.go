@@ -56,18 +56,3 @@ func (o *orchestrator) GetChain(number uint) (map[uint]*Pull, error) {
 
 	return chain, nil
 }
-
-func GetOpen() []Pull {
-	return []Pull{
-		{"my pull request", "some-branch", "some body", StateOpen, 1, 0},
-		{"code", "some-other-branch", "some body", StateOpen, 2, 0},
-	}
-}
-
-func GetChain(branch string) []Pull {
-	return []Pull{
-		{"remove something", "some-branch-123", "some body", StateReleased, 3, 0},
-		{"add something", "my-branch", "some body", StateMerged, 2, 3},
-		{"do something", branch, "some body", StateOpen, 1, 2},
-	}
-}
