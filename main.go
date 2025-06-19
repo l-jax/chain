@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	// another test
 	p := tui.GetProgram()
 	if _, err := p.Run(); err != nil {
 		fmt.Println("Error running program:", err)
