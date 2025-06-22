@@ -1,34 +1,39 @@
 package tui
 
 import (
-	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/list"
 )
 
+var enumeratorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("99")).MarginRight(1)
+var itemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212")).MarginRight(1)
+
 type Chain struct {
-	rootLinkId uint
-	list       list.Model
-	loaded     bool
-	quitting   bool
-	err        error
+	rootLink Link
+	list     *list.List
+	loaded   bool
+	quitting bool
+	err      error
 }
 
-func InitChain(rootLinkId uint) *Chain {
-	m := Chain{
-		rootLinkId: rootLinkId,
-		list:       list.New([]list.Item{}, list.NewDefaultDelegate(), windowSize.Width/divisor, windowSize.Height/divisor),
-	}
-	m.list.SetShowHelp(false)
-	m.list.Title = "chain"
+func InitChain(rootLink Link) *Chain {
+	l := list.New("branch-1", "branch-2", "branch-3").
+		Enumerator(statusEnumerator).
+		EnumeratorStyle(enumeratorStyle).
+		ItemStyle(itemStyle)
 
-	m.list.SetItems([]list.Item{
-		NewLink("Chain 1", "Description for Chain 1", 1, 1),
-		NewLink("Chain 2", "Description for Chain 2", 2, 2),
-		NewLink("Chain 3", "Description for Chain 3", 3, 3),
-	})
+	m := Chain{
+		rootLink: rootLink,
+		list:     l,
+	}
 
 	m.loaded = true
 	return &m
+}
+
+func statusEnumerator(items list.Items, i int) string {
+	return items.At(i).Value()
 }
 
 func (m Chain) Init() tea.Cmd {
@@ -36,13 +41,8 @@ func (m Chain) Init() tea.Cmd {
 }
 
 func (m Chain) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.list.SetSize(msg.Width/divisor, msg.Height/divisor)
-	}
 
 	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
 	return m, cmd
 }
 
@@ -59,5 +59,5 @@ func (m Chain) View() string {
 		return "Loading..."
 	}
 
-	return m.list.View()
+	return m.list.String() + "\n"
 }

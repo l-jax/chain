@@ -36,7 +36,12 @@ func InitModel() (tea.Model, tea.Cmd) {
 	}
 	m.models = make([]tea.Model, 2)
 	m.models[activeView] = InitOpen()
-	m.models[chainView] = InitChain(1)
+	m.models[chainView] = InitChain(Link{
+		title:       "Root Link",
+		description: "This is the root link",
+		id:          0,
+		linkid:      0,
+	})
 	return m, func() tea.Msg { return errMsg{err: nil} }
 }
 
@@ -58,7 +63,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Enter) && m.focussed == activeView:
-			selected := m.models[activeView].(Open).SelectedId()
+			selected := m.models[activeView].(Open).list.SelectedItem().(Link)
 			m.models[chainView] = InitChain(selected)
 			m.focussed = chainView
 		case key.Matches(msg, keys.Back):
