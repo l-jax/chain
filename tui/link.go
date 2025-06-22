@@ -1,23 +1,18 @@
 package tui
 
-type index uint
-
-const (
-	active index = iota
-	chain
-)
-
 type Link struct {
-	index       index
 	title       string
 	description string
+	id          uint
+	linkid      uint
 }
 
-func NewLink(title, description string, index index) Link {
+func NewLink(title, description string, id, linkid uint) Link {
 	return Link{
-		index:       index,
 		title:       title,
 		description: description,
+		id:          id,
+		linkid:      linkid,
 	}
 }
 
