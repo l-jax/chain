@@ -19,9 +19,9 @@ func InitOpen() tea.Model {
 	m.list.Title = "open"
 
 	m.list.SetItems([]list.Item{
-		NewLink("Chain 1", "Description for Chain 1", 1, 1),
-		NewLink("Chain 2", "Description for Chain 2", 2, 2),
-		NewLink("Chain 3", "Description for Chain 3", 3, 3),
+		NewLink("Chain 1", "Description for Chain 1", "branch-1", 1, 1, label(open)),
+		NewLink("Chain 2", "Description for Chain 2", "branch-1", 2, 2, label(blocked)),
+		NewLink("Chain 3", "Description for Chain 3", "branch-1", 3, 3, label(merged)),
 	})
 
 	m.loaded = true

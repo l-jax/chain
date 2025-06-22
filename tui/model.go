@@ -37,10 +37,12 @@ func InitModel() (tea.Model, tea.Cmd) {
 	m.models = make([]tea.Model, 2)
 	m.models[activeView] = InitOpen()
 	m.models[chainView] = InitChain(Link{
-		title:       "Root Link",
-		description: "This is the root link",
-		id:          0,
-		linkid:      0,
+		title:  "Root Link",
+		body:   "This is the root link",
+		id:     1,
+		linkid: 0,
+		branch: "feature-one",
+		label:  label(open),
 	})
 	return m, func() tea.Msg { return errMsg{err: nil} }
 }
