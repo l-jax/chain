@@ -1,6 +1,9 @@
 package tui
 
-import "chain/chain"
+import (
+	"chain/chain"
+	"fmt"
+)
 
 type handler struct {
 	links  []Link
@@ -27,14 +30,11 @@ func (h *handler) FetchOpen(refresh bool) ([]Link, error) {
 
 	h.links = make([]Link, len(pulls))
 	for i, pull := range pulls {
-		h.links[i] = NewLink(
-			pull.Title(),
-			pull.Body(),
-			pull.Branch(),
-			pull.Number(),
-			pull.Chain(),
-			label(pull.State()),
-		)
+		link, err := mapPr(pull)
+		if err != nil {
+			return nil, err
+		}
+		h.links[i] = *link
 	}
 	return h.links, nil
 }
@@ -52,16 +52,44 @@ func (h *handler) FetchChain(link Link, refresh bool) ([]Link, error) {
 
 	links := make([]Link, 0, len(pull))
 	for _, pr := range pull {
-		links = append(links, NewLink(
-			pr.Title(),
-			pr.Body(),
-			pr.Branch(),
-			pr.Number(),
-			pr.Chain(),
-			label(pr.State()),
-		))
+		link, err := mapPr(pr)
+		if err != nil {
+			return nil, err
+		}
+		links = append(links, *link)
 	}
 
 	h.chains[link.id] = links
 	return links, nil
+}
+
+func mapPr(pr *chain.PullRequest) (*Link, error) {
+	label, err := mapLabel(pr.State())
+	if err != nil {
+		return nil, err
+	}
+	link := NewLink(
+		pr.Title(),
+		pr.Body(),
+		pr.Branch(),
+		pr.Number(),
+		pr.Chain(),
+		label,
+	)
+	return &link, nil
+}
+
+func mapLabel(state chain.State) (label, error) {
+	switch state {
+	case chain.StateOpen:
+		return open, nil
+	case chain.StateBlocked:
+		return blocked, nil
+	case chain.StateMerged:
+		return merged, nil
+	case chain.StateReleased:
+		return released, nil
+	default:
+		return open, fmt.Errorf("unknown state: %s", state)
+	}
 }

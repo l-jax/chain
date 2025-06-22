@@ -9,7 +9,11 @@ import (
 )
 
 func main() {
-	m, _ := tui.InitModel()
+	m, err := tui.InitModel()
+	if err != nil {
+		fmt.Println("Error initializing model:")
+		os.Exit(1)
+	}
 	p := tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Println("Error running program:", err)

@@ -31,7 +31,7 @@ type Model struct {
 	quitting bool
 }
 
-func InitModel() (tea.Model, tea.Cmd) {
+func InitModel() (tea.Model, error) {
 	m := &Model{
 		focussed: activeView,
 		handler:  initHandler(),
@@ -43,19 +43,19 @@ func InitModel() (tea.Model, tea.Cmd) {
 	links, err := m.handler.FetchOpen(true)
 	if err != nil {
 		m.err = err
-		return m, func() tea.Msg { return errMsg{err: err} }
+		return nil, err
 	}
 
 	chain, err := m.handler.FetchChain(links[0], true)
 	if err != nil {
 		m.err = err
-		return m, func() tea.Msg { return errMsg{err: err} }
+		return nil, err
 	}
 
 	m.models = make([]tea.Model, 2)
 	m.models[activeView] = InitOpen(links)
 	m.models[chainView] = InitChain(chain)
-	return m, func() tea.Msg { return errMsg{err: nil} }
+	return m, nil
 }
 
 func (m Model) Init() tea.Cmd {
