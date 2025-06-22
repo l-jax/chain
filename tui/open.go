@@ -17,6 +17,8 @@ func InitOpen() tea.Model {
 
 	m.list.SetShowHelp(false)
 	m.list.Title = "open"
+	m.list.Styles.Title = titleStyle
+	m.list.Styles.NoItems = bodyStyle
 
 	m.list.SetItems([]list.Item{
 		NewLink("Chain 1", "Description for Chain 1", "branch-1", 1, 1, label(open)),
