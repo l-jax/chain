@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"strconv"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -50,5 +52,30 @@ func (m Chain) View() string {
 			labelStyle.Render(m.chain[0].Label().String()),
 		),
 		bodyStyle.Render(m.chain[0].Body()),
+		m.prepareChain(),
 	)
+}
+
+func (m Chain) prepareChain() string {
+	if len(m.chain) == 0 {
+		return "No chain available"
+	}
+
+	var chainView string
+	for i, link := range m.chain {
+		if i == 0 {
+			continue
+		}
+		chainView = lipgloss.JoinVertical(
+			lipgloss.Left,
+			chainView,
+			lipgloss.JoinHorizontal(
+				lipgloss.Left,
+				labelStyle.Render("#"+strconv.FormatUint(uint64(link.Id()), 10)),
+				titleStyle.Render(link.Title()),
+				labelStyle.Render(link.Label().String()),
+			),
+		)
+	}
+	return chainView
 }
