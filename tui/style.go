@@ -10,16 +10,20 @@ var (
 )
 
 var (
-	listStyle = lipgloss.NewStyle().
+	unfocussedStyle = lipgloss.NewStyle().
 			Padding(1, 2).
 			BorderStyle(lipgloss.RoundedBorder()).
 			BorderForeground(grey)
-	focussedStyle = listStyle.
+	focussedStyle = unfocussedStyle.
 			BorderForeground(pink)
 	helpStyle = lipgloss.NewStyle().
 			Foreground(grey)
 	titleStyle = lipgloss.NewStyle().
 			Background(purple).
+			Foreground(white).
+			Padding(0, 1)
+	labelStyle = lipgloss.NewStyle().
+			Background(grey).
 			Foreground(white).
 			Padding(0, 1)
 	bodyStyle = lipgloss.NewStyle().

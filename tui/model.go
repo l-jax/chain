@@ -8,7 +8,7 @@ import (
 
 var (
 	windowSize tea.WindowSizeMsg
-	divisor    = 4
+	divisor    = 6
 )
 
 type errMsg struct {
@@ -102,12 +102,12 @@ func (m Model) View() string {
 		return lipgloss.JoinHorizontal(
 			lipgloss.Left,
 			focussedStyle.Render(active),
-			listStyle.Render(chain),
+			unfocussedStyle.Render(chain),
 		)
 	case chainView:
 		return lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			listStyle.Render(active),
+			unfocussedStyle.Render(active),
 			focussedStyle.Render(chain),
 		)
 	}

@@ -68,3 +68,11 @@ func (l Link) Label() label {
 func (l Link) Id() uint {
 	return l.id
 }
+
+func (l Link) LinkId() uint {
+	return l.linkid
+}
+
+func (l Link) Body() string {
+	return l.body
+}
