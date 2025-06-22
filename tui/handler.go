@@ -3,12 +3,14 @@ package tui
 import "chain/chain"
 
 type handler struct {
-	links []Link
+	links  []Link
+	chains map[uint][]Link
 }
 
 func initHandler() *handler {
 	return &handler{
-		links: []Link{},
+		links:  []Link{},
+		chains: make(map[uint][]Link),
 	}
 }
 
@@ -37,7 +39,11 @@ func (h *handler) FetchOpen(refresh bool) ([]Link, error) {
 	return h.links, nil
 }
 
-func (h *handler) FetchChain(link Link) ([]Link, error) {
+func (h *handler) FetchChain(link Link, refresh bool) ([]Link, error) {
+	if !refresh && h.chains[link.id] != nil {
+		return h.chains[link.id], nil
+	}
+
 	chainHandler := chain.NewChainHandler()
 	pull, err := chainHandler.GetChain(link.Id())
 	if err != nil {
@@ -55,5 +61,7 @@ func (h *handler) FetchChain(link Link) ([]Link, error) {
 			label(pr.State()),
 		))
 	}
+
+	h.chains[link.id] = links
 	return links, nil
 }

@@ -46,7 +46,7 @@ func InitModel() (tea.Model, tea.Cmd) {
 		return m, func() tea.Msg { return errMsg{err: err} }
 	}
 
-	chain, err := m.handler.FetchChain(links[0])
+	chain, err := m.handler.FetchChain(links[0], true)
 	if err != nil {
 		m.err = err
 		return m, func() tea.Msg { return errMsg{err: err} }
@@ -77,8 +77,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, keys.Enter) && m.focussed == activeView:
 			selected := m.models[activeView].(Open).list.SelectedItem().(Link)
-			m.handler.FetchChain(selected)
-			chain, err := m.handler.FetchChain(selected)
+			m.handler.FetchChain(selected, false)
+			chain, err := m.handler.FetchChain(selected, false)
 			if err != nil {
 				m.err = err
 				return m, func() tea.Msg { return errMsg{err: err} }
