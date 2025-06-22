@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -101,7 +102,7 @@ func mapState(state string, labels []github.Label) (State, error) {
 
 func isBlocked(labels []github.Label) bool {
 	for _, label := range labels {
-		if label.Name == "DO NOT MERGE" {
+		if strings.EqualFold(label.Name, "DO NOT MERGE") {
 			return true
 		}
 	}
@@ -110,7 +111,7 @@ func isBlocked(labels []github.Label) bool {
 
 func isReleased(labels []github.Label) bool {
 	for _, label := range labels {
-		if label.Name == "RELEASED" {
+		if strings.EqualFold(label.Name, "RELEASED") {
 			return true
 		}
 	}
