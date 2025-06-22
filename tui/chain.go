@@ -6,9 +6,6 @@ import (
 	"github.com/charmbracelet/lipgloss/list"
 )
 
-var enumeratorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("99")).MarginRight(1)
-var itemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212")).MarginRight(1)
-
 type Chain struct {
 	rootLink Link
 	list     *list.List
@@ -59,5 +56,10 @@ func (m Chain) View() string {
 		return "Loading..."
 	}
 
-	return m.list.String() + "\n"
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		titleStyle.Render(m.rootLink.Title()),
+		bodyStyle.Render(m.rootLink.Description()),
+		m.list.String(),
+	)
 }
