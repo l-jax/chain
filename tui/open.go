@@ -12,7 +12,7 @@ type Open struct {
 	quitting bool
 }
 
-func InitOpen() tea.Model {
+func InitOpen(links []Link) tea.Model {
 	m := Open{list: list.New([]list.Item{}, list.NewDefaultDelegate(), windowSize.Width/divisor, windowSize.Height-divisor)}
 
 	m.list.SetShowHelp(false)
@@ -20,11 +20,11 @@ func InitOpen() tea.Model {
 	m.list.Styles.Title = titleStyle
 	m.list.Styles.NoItems = bodyStyle
 
-	m.list.SetItems([]list.Item{
-		NewLink("Chain 1", "Description for Chain 1", "branch-1", 1, 1, label(open)),
-		NewLink("Chain 2", "Description for Chain 2", "branch-1", 2, 2, label(blocked)),
-		NewLink("Chain 3", "Description for Chain 3", "branch-1", 3, 3, label(merged)),
-	})
+	items := make([]list.Item, len(links))
+	for i, link := range links {
+		items[i] = link
+	}
+	m.list.SetItems(items)
 
 	m.loaded = true
 	return &m

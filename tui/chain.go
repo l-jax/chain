@@ -6,18 +6,14 @@ import (
 )
 
 type Chain struct {
-	rootLink Link
 	chain    []Link
 	loaded   bool
 	quitting bool
 	err      error
 }
 
-func InitChain(rootLink Link) *Chain {
-
-	m := Chain{
-		rootLink: rootLink,
-	}
+func InitChain(chain []Link) *Chain {
+	m := Chain{chain: chain}
 
 	m.loaded = true
 	return &m
@@ -50,9 +46,9 @@ func (m Chain) View() string {
 		lipgloss.Left,
 		lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			titleStyle.Render(m.rootLink.Title()),
-			labelStyle.Render(m.rootLink.Label().String()),
+			titleStyle.Render(m.chain[0].Title()),
+			labelStyle.Render(m.chain[0].Label().String()),
 		),
-		bodyStyle.Render(m.rootLink.Body()),
+		bodyStyle.Render(m.chain[0].Body()),
 	)
 }

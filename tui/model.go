@@ -25,6 +25,7 @@ const (
 type Model struct {
 	models   []tea.Model
 	focussed sessionState
+	handler  *handler
 	loaded   bool
 	err      error
 	quitting bool
@@ -33,17 +34,27 @@ type Model struct {
 func InitModel() (tea.Model, tea.Cmd) {
 	m := &Model{
 		focussed: activeView,
+		handler:  initHandler(),
+		loaded:   false,
+		err:      nil,
+		quitting: false,
 	}
+
+	links, err := m.handler.FetchOpen(true)
+	if err != nil {
+		m.err = err
+		return m, func() tea.Msg { return errMsg{err: err} }
+	}
+
+	chain, err := m.handler.FetchChain(links[0])
+	if err != nil {
+		m.err = err
+		return m, func() tea.Msg { return errMsg{err: err} }
+	}
+
 	m.models = make([]tea.Model, 2)
-	m.models[activeView] = InitOpen()
-	m.models[chainView] = InitChain(Link{
-		title:  "Root Link",
-		body:   "This is the root link",
-		id:     1,
-		linkid: 0,
-		branch: "feature-one",
-		label:  label(open),
-	})
+	m.models[activeView] = InitOpen(links)
+	m.models[chainView] = InitChain(chain)
 	return m, func() tea.Msg { return errMsg{err: nil} }
 }
 
@@ -66,7 +77,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, keys.Enter) && m.focussed == activeView:
 			selected := m.models[activeView].(Open).list.SelectedItem().(Link)
-			m.models[chainView] = InitChain(selected)
+			m.handler.FetchChain(selected)
+			chain, err := m.handler.FetchChain(selected)
+			if err != nil {
+				m.err = err
+				return m, func() tea.Msg { return errMsg{err: err} }
+			}
+			m.models[chainView] = InitChain(chain)
 			m.focussed = chainView
 		case key.Matches(msg, keys.Back):
 			m.focussed = activeView
