@@ -13,7 +13,7 @@ type Open struct {
 }
 
 func InitOpen() tea.Model {
-	m := Open{list: list.New([]list.Item{}, list.NewDefaultDelegate(), windowSize.Width/divisor, windowSize.Height/divisor)}
+	m := Open{list: list.New([]list.Item{}, list.NewDefaultDelegate(), windowSize.Width/divisor, windowSize.Height-divisor)}
 
 	m.list.SetShowHelp(false)
 	m.list.Title = "open"
@@ -37,7 +37,7 @@ func (m Open) Init() tea.Cmd {
 func (m Open) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.list.SetSize(msg.Width/divisor, msg.Height/divisor)
+		m.list.SetSize(msg.Width/divisor, msg.Height-divisor)
 	}
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
