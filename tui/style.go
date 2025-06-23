@@ -16,8 +16,6 @@ var (
 			BorderForeground(grey)
 	focussedStyle = unfocussedStyle.
 			BorderForeground(pink)
-	helpStyle = lipgloss.NewStyle().
-			Foreground(grey)
 	titleStyle = lipgloss.NewStyle().
 			Background(purple).
 			Foreground(white).
@@ -29,10 +27,4 @@ var (
 	bodyStyle = lipgloss.NewStyle().
 			Foreground(grey).
 			Padding(1, 0)
-	enumeratorStyle = lipgloss.NewStyle().
-			Foreground(purple).
-			MarginRight(1)
-	itemStyle = lipgloss.NewStyle().
-			Foreground(grey).
-			MarginRight(1)
 )

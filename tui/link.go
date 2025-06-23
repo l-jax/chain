@@ -52,7 +52,7 @@ func (l Link) FilterValue() string {
 }
 
 func (l Link) Title() string {
-	return l.branch + " - " + l.title
+	return l.branch
 }
 
 func (l Link) Description() string {

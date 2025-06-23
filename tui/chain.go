@@ -5,6 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 )
 
 type Chain struct {
@@ -52,30 +53,45 @@ func (m Chain) View() string {
 			labelStyle.Render(m.chain[0].Label().String()),
 		),
 		bodyStyle.Render(m.chain[0].Body()),
-		m.prepareChain(),
+		m.PrepareChainTable(),
 	)
 }
 
-func (m Chain) prepareChain() string {
-	if len(m.chain) == 0 {
-		return "No chain available"
+func (m *Chain) PrepareChainTable() string {
+	rows := make([][]string, len(m.chain))
+	for i, link := range m.chain {
+		rows[i] = []string{
+			strconv.FormatUint(uint64(link.Id()), 10),
+			link.Branch(),
+			link.Label().String(),
+		}
 	}
 
-	var chainView string
-	for i, link := range m.chain {
-		if i == 0 {
-			continue
-		}
-		chainView = lipgloss.JoinVertical(
-			lipgloss.Left,
-			chainView,
-			lipgloss.JoinHorizontal(
-				lipgloss.Left,
-				labelStyle.Render("#"+strconv.FormatUint(uint64(link.Id()), 10)),
-				titleStyle.Render(link.Title()),
-				labelStyle.Render(link.Label().String()),
-			),
-		)
-	}
-	return chainView
+	var (
+		purple    = lipgloss.Color("99")
+		gray      = lipgloss.Color("245")
+		lightGray = lipgloss.Color("241")
+
+		headerStyle  = lipgloss.NewStyle().Foreground(purple).Bold(true).Align(lipgloss.Center)
+		cellStyle    = lipgloss.NewStyle().Padding(0, 1).Width(14)
+		oddRowStyle  = cellStyle.Foreground(gray)
+		evenRowStyle = cellStyle.Foreground(lightGray)
+	)
+	t := table.New().
+		Border(lipgloss.NormalBorder()).
+		BorderStyle(lipgloss.NewStyle().Foreground(purple)).
+		StyleFunc(func(row, col int) lipgloss.Style {
+			switch {
+			case row == table.HeaderRow:
+				return headerStyle
+			case row%2 == 0:
+				return evenRowStyle
+			default:
+				return oddRowStyle
+			}
+		}).
+		Headers("ID", "BRANCH", "STATE").
+		Rows(rows...)
+
+	return t.Render()
 }
