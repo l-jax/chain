@@ -47,7 +47,7 @@ func TestGetPullRequestReturnsMappedPull(t *testing.T) {
 	clientStub := initPortStub(mockPrs, false)
 	service := Adaptor{port: clientStub}
 
-	pull, err := service.GetPullRequest(1)
+	pull, err := service.GetPr(1)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
@@ -62,7 +62,7 @@ func TestGetPullRequestReturnsErrorIfClientErrors(t *testing.T) {
 	clientStub := initPortStub(nil, true)
 	service := Adaptor{port: clientStub}
 
-	_, err := service.GetPullRequest(1)
+	_, err := service.GetPr(1)
 
 	assertError(t, err, want)
 }
@@ -75,7 +75,7 @@ func TestListPullRequests(t *testing.T) {
 	clientStub := initPortStub(want, false)
 	service := Adaptor{port: clientStub}
 
-	got, _ := service.ListPullRequests()
+	got, _ := service.ListOpenPrs()
 
 	if len(got) != len(want) {
 		t.Errorf("got %q pull requests want %q", len(got), len(want))
@@ -87,7 +87,7 @@ func TestListPullRequestsReturnsErrorIfClientErrors(t *testing.T) {
 	service := Adaptor{port: clientStub}
 	want := fmt.Errorf("%w: %w", ErrFailedToFetch, errPortStub)
 
-	_, err := service.ListPullRequests()
+	_, err := service.ListOpenPrs()
 
 	assertError(t, err, want)
 }

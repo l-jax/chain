@@ -23,9 +23,9 @@ func TestGetPullRequests(t *testing.T) {
 	}
 
 	service := &serviceFake{pullRequests: want}
-	handler := chainHandler{repoService: service}
+	handler := orchestrator{gitHubAdaptor: service}
 
-	got, err := handler.GetPullRequests()
+	got, err := handler.ListOpenPrs()
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -48,7 +48,7 @@ func TestGetChain(t *testing.T) {
 	}
 
 	service := &serviceFake{pullRequests: []*github.PullRequest{openPr, mergedPr, releasedPr, blockedPr}}
-	handler := chainHandler{repoService: service}
+	handler := orchestrator{gitHubAdaptor: service}
 
 	got, err := handler.GetChain(12)
 
@@ -73,7 +73,7 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 		github.NewPullRequest("add something", "my-branch", "do not merge until #11 is released", github.StateOpen, []string{}, 12),
 		github.NewPullRequest("merge something", "my-branch", "do not merge until #12 is released", github.StateMerged, []string{}, 11),
 	}}
-	handler := chainHandler{repoService: service}
+	handler := orchestrator{gitHubAdaptor: service}
 
 	_, err := handler.GetChain(12)
 
@@ -90,11 +90,11 @@ type serviceFake struct {
 	pullRequests []*github.PullRequest
 }
 
-func (a *serviceFake) ListPullRequests() ([]*github.PullRequest, error) {
+func (a *serviceFake) ListOpenPrs() ([]*github.PullRequest, error) {
 	return a.pullRequests, nil
 }
 
-func (a *serviceFake) GetPullRequest(number uint) (*github.PullRequest, error) {
+func (a *serviceFake) GetPr(number uint) (*github.PullRequest, error) {
 	for _, pull := range a.pullRequests {
 		if pull.Number() == number {
 			return pull, nil

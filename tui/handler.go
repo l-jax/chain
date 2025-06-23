@@ -21,8 +21,8 @@ func (h *handler) FetchOpen(refresh bool) ([]chain.Pr, error) {
 		return h.links, nil
 	}
 
-	chainHandler := chain.NewChainHandler()
-	pulls, err := chainHandler.GetPullRequests()
+	chainHandler := chain.InitOrchestrator()
+	pulls, err := chainHandler.ListOpenPrs()
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (h *handler) FetchChain(link chain.Pr, refresh bool) ([]chain.Pr, error) {
 		return h.chains[link.Id()], nil
 	}
 
-	chainHandler := chain.NewChainHandler()
+	chainHandler := chain.InitOrchestrator()
 	pull, err := chainHandler.GetChain(link.Id())
 	if err != nil {
 		return nil, err

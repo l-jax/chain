@@ -25,7 +25,7 @@ func NewAdaptor() *Adaptor {
 	}
 }
 
-func (a *Adaptor) GetPullRequest(number uint) (*PullRequest, error) {
+func (a *Adaptor) GetPr(number uint) (*PullRequest, error) {
 	pr, err := a.port.GetPr(fmt.Sprintf("%d", number))
 	if err != nil {
 		return nil, fmt.Errorf("%w %d: %w", ErrFailedToFetch, number, err)
@@ -33,7 +33,7 @@ func (a *Adaptor) GetPullRequest(number uint) (*PullRequest, error) {
 	return mapPr(pr)
 }
 
-func (a *Adaptor) ListPullRequests() ([]*PullRequest, error) {
+func (a *Adaptor) ListOpenPrs() ([]*PullRequest, error) {
 	gitHubPrs, err := a.port.ListActivePrs()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)

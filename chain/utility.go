@@ -1,0 +1,78 @@
+package chain
+
+import (
+	"chain/github"
+	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+)
+
+func mapPr(pr *github.PullRequest) (*Pr, error) {
+	state, err := mapState(pr.State(), pr.Labels())
+	if err != nil {
+		return nil, err
+	}
+
+	link := InitPr(
+		pr.Title(),
+		pr.Body(),
+		pr.Branch(),
+		pr.Number(),
+		findLink(pr.Body()),
+		state,
+	)
+	return &link, nil
+}
+
+func mapState(state github.State, labels []string) (state, error) {
+	switch state {
+	case github.StateOpen:
+		if isBlocked(labels) {
+			return blocked, nil
+		}
+		return open, nil
+	case github.StateClosed:
+		return closed, nil
+	case github.StateMerged:
+		if isReleased(labels) {
+			return released, nil
+		}
+		return merged, nil
+	default:
+		return 0, fmt.Errorf("unexpected state: %s", state)
+	}
+}
+
+func isBlocked(labels []string) bool {
+	for _, label := range labels {
+		if strings.EqualFold(label, "DO NOT MERGE") {
+			return true
+		}
+	}
+	return false
+}
+
+func isReleased(labels []string) bool {
+	for _, label := range labels {
+		if strings.EqualFold(label, "RELEASED") {
+			return true
+		}
+	}
+	return false
+}
+
+func findLink(body string) uint {
+	re := regexp.MustCompile(`do not merge until #(\d+)`)
+	match := re.FindStringSubmatch(body)
+
+	if match == nil {
+		return 0
+	}
+
+	link, err := strconv.ParseUint(match[1], 10, 32)
+	if err != nil {
+		return 0
+	}
+	return uint(link)
+}
