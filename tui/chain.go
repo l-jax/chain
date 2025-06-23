@@ -69,16 +69,6 @@ func (m *Chain) PrepareChainTable() string {
 		}
 	}
 
-	var (
-		purple    = lipgloss.Color("99")
-		gray      = lipgloss.Color("245")
-		lightGray = lipgloss.Color("241")
-
-		headerStyle  = lipgloss.NewStyle().Foreground(purple).Bold(true).Align(lipgloss.Center)
-		cellStyle    = lipgloss.NewStyle().Padding(0, 1)
-		oddRowStyle  = cellStyle.Foreground(gray)
-		evenRowStyle = cellStyle.Foreground(lightGray)
-	)
 	t := table.New().
 		Border(lipgloss.NormalBorder()).
 		BorderStyle(lipgloss.NewStyle().Foreground(purple)).
@@ -92,7 +82,7 @@ func (m *Chain) PrepareChainTable() string {
 				return oddRowStyle
 			}
 		}).
-		Headers("ID", "BRANCH", "STATE").
+		Headers("id", "branch", "state").
 		Rows(rows...)
 
 	return t.Render()
