@@ -74,7 +74,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Enter):
-			selected := m.models[listView].(List).list.SelectedItem().(Link)
+			selected := m.models[listView].(List).list.SelectedItem().(pr)
 			m.handler.FetchChain(selected, false)
 			chain, err := m.handler.FetchChain(selected, false)
 			if err != nil {

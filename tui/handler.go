@@ -6,18 +6,18 @@ import (
 )
 
 type handler struct {
-	links  []Link
-	chains map[uint][]Link
+	links  []pr
+	chains map[uint][]pr
 }
 
 func initHandler() *handler {
 	return &handler{
-		links:  []Link{},
-		chains: make(map[uint][]Link),
+		links:  []pr{},
+		chains: make(map[uint][]pr),
 	}
 }
 
-func (h *handler) FetchOpen(refresh bool) ([]Link, error) {
+func (h *handler) FetchOpen(refresh bool) ([]pr, error) {
 	if !refresh && len(h.links) > 0 {
 		return h.links, nil
 	}
@@ -28,7 +28,7 @@ func (h *handler) FetchOpen(refresh bool) ([]Link, error) {
 		return nil, err
 	}
 
-	h.links = make([]Link, len(pulls))
+	h.links = make([]pr, len(pulls))
 	for i, pull := range pulls {
 		link, err := mapPr(pull)
 		if err != nil {
@@ -39,7 +39,7 @@ func (h *handler) FetchOpen(refresh bool) ([]Link, error) {
 	return h.links, nil
 }
 
-func (h *handler) FetchChain(link Link, refresh bool) ([]Link, error) {
+func (h *handler) FetchChain(link pr, refresh bool) ([]pr, error) {
 	if !refresh && h.chains[link.id] != nil {
 		return h.chains[link.id], nil
 	}
@@ -50,7 +50,7 @@ func (h *handler) FetchChain(link Link, refresh bool) ([]Link, error) {
 		return nil, err
 	}
 
-	links := make([]Link, 0, len(pull))
+	links := make([]pr, 0, len(pull))
 	for _, pr := range pull {
 		link, err := mapPr(pr)
 		if err != nil {
@@ -63,12 +63,12 @@ func (h *handler) FetchChain(link Link, refresh bool) ([]Link, error) {
 	return links, nil
 }
 
-func mapPr(pr *chain.PullRequest) (*Link, error) {
+func mapPr(pr *chain.PullRequest) (*pr, error) {
 	label, err := mapLabel(pr.State())
 	if err != nil {
 		return nil, err
 	}
-	link := NewLink(
+	link := InitPr(
 		pr.Title(),
 		pr.Body(),
 		pr.Branch(),
@@ -79,7 +79,7 @@ func mapPr(pr *chain.PullRequest) (*Link, error) {
 	return &link, nil
 }
 
-func mapLabel(state chain.State) (label, error) {
+func mapLabel(state chain.State) (state, error) {
 	switch state {
 	case chain.StateOpen:
 		return open, nil

@@ -12,7 +12,7 @@ type List struct {
 	quitting bool
 }
 
-func InitList(links []Link) tea.Model {
+func InitList(prs []pr) tea.Model {
 	m := List{list: list.New([]list.Item{}, list.NewDefaultDelegate(), windowSize.Width/divisor, windowSize.Height-divisor)}
 
 	m.list.SetShowHelp(false)
@@ -20,9 +20,9 @@ func InitList(links []Link) tea.Model {
 	m.list.Styles.Title = titleStyle
 	m.list.Styles.NoItems = bodyStyle
 
-	items := make([]list.Item, len(links))
-	for i, link := range links {
-		items[i] = link
+	items := make([]list.Item, len(prs))
+	for i, pr := range prs {
+		items[i] = pr
 	}
 	m.list.SetItems(items)
 
@@ -61,7 +61,7 @@ func (m List) View() string {
 }
 
 func (m List) SelectedId() uint {
-	if item, ok := m.list.SelectedItem().(Link); ok {
+	if item, ok := m.list.SelectedItem().(pr); ok {
 		return item.id
 	}
 	return 0

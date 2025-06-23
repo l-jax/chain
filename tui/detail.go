@@ -9,15 +9,15 @@ import (
 )
 
 type Detail struct {
-	link     *Link
-	chain    []Link
+	pr       *pr
+	chain    []pr
 	loaded   bool
 	quitting bool
 	err      error
 }
 
-func InitDetail(chain []Link, link *Link) *Detail {
-	m := Detail{chain: chain, link: link}
+func InitDetail(chain []pr, pr *pr) *Detail {
+	m := Detail{chain: chain, pr: pr}
 
 	m.loaded = true
 	return &m
@@ -51,21 +51,21 @@ func (m Detail) View() string {
 		lipgloss.JoinHorizontal(
 			lipgloss.Left,
 			titleStyle.Render("chain"),
-			bodyStyle.Padding(0, 2).Render(m.link.Title()),
-			labelStyle.Render(m.link.Label().String()),
+			bodyStyle.Padding(0, 2).Render(m.pr.Title()),
+			labelStyle.Render(m.pr.State().String()),
 		),
-		bodyStyle.Padding(1, 0).Render(m.link.Body()),
+		bodyStyle.Padding(1, 0).Render(m.pr.Body()),
 		m.RenderChain(),
 	)
 }
 
 func (m *Detail) RenderChain() string {
 	rows := make([][]string, len(m.chain))
-	for i, link := range m.chain {
+	for i, pr := range m.chain {
 		rows[i] = []string{
-			strconv.FormatUint(uint64(link.Id()), 10),
-			link.Branch(),
-			link.Label().String(),
+			strconv.FormatUint(uint64(pr.Id()), 10),
+			pr.Branch(),
+			pr.State().String(),
 		}
 	}
 
