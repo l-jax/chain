@@ -1,4 +1,4 @@
-package chain
+package github
 
 type PullRequest struct {
 	title  string

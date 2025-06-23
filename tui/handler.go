@@ -2,6 +2,7 @@ package tui
 
 import (
 	"chain/chain"
+	"chain/github"
 	"fmt"
 )
 
@@ -63,7 +64,7 @@ func (h *handler) FetchChain(link pr, refresh bool) ([]pr, error) {
 	return links, nil
 }
 
-func mapPr(pr *chain.PullRequest) (*pr, error) {
+func mapPr(pr *github.PullRequest) (*pr, error) {
 	label, err := mapLabel(pr.State())
 	if err != nil {
 		return nil, err
@@ -79,17 +80,17 @@ func mapPr(pr *chain.PullRequest) (*pr, error) {
 	return &link, nil
 }
 
-func mapLabel(state chain.State) (state, error) {
+func mapLabel(state github.State) (state, error) {
 	switch state {
-	case chain.StateOpen:
+	case github.StateOpen:
 		return open, nil
-	case chain.StateBlocked:
+	case github.StateBlocked:
 		return blocked, nil
-	case chain.StateMerged:
+	case github.StateMerged:
 		return merged, nil
-	case chain.StateReleased:
+	case github.StateReleased:
 		return released, nil
-	case chain.StateClosed:
+	case github.StateClosed:
 		return closed, nil
 	default:
 		return open, fmt.Errorf("unknown state: %s", state)

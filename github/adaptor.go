@@ -1,7 +1,6 @@
-package chain
+package github
 
 import (
-	"chain/github"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -14,31 +13,31 @@ var (
 	ErrUnexpectedState = fmt.Errorf("unexpected state")
 )
 
-type GitHubClient interface {
-	GetPr(number string) (*github.PullRequest, error)
-	ListActivePrs() ([]*github.PullRequest, error)
+type gitHubPort interface {
+	GetPr(number string) (*gitHubPr, error)
+	ListActivePrs() ([]*gitHubPr, error)
 }
 
-type gitHubService struct {
-	gitHubClient GitHubClient
+type Adaptor struct {
+	port gitHubPort
 }
 
-func NewGitHubService(gitHubClient GitHubClient) *gitHubService {
-	return &gitHubService{
-		gitHubClient: gitHubClient,
+func NewAdaptor() *Adaptor {
+	return &Adaptor{
+		port: port{},
 	}
 }
 
-func (a *gitHubService) getPullRequest(number uint) (*PullRequest, error) {
-	pr, err := a.gitHubClient.GetPr(fmt.Sprintf("%d", number))
+func (a *Adaptor) GetPullRequest(number uint) (*PullRequest, error) {
+	pr, err := a.port.GetPr(fmt.Sprintf("%d", number))
 	if err != nil {
 		return nil, fmt.Errorf("%w %d: %w", ErrFailedToFetch, number, err)
 	}
 	return mapToPullRequest(pr)
 }
 
-func (a *gitHubService) listPullRequests() ([]*PullRequest, error) {
-	gitHubPrs, err := a.gitHubClient.ListActivePrs()
+func (a *Adaptor) ListPullRequests() ([]*PullRequest, error) {
+	gitHubPrs, err := a.port.ListActivePrs()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
 	}
@@ -69,7 +68,7 @@ func findLink(body string) uint {
 	return uint(link)
 }
 
-func mapToPullRequest(pr *github.PullRequest) (*PullRequest, error) {
+func mapToPullRequest(pr *gitHubPr) (*PullRequest, error) {
 	state, err := mapState(pr.State, pr.Labels)
 
 	if err != nil {
@@ -81,7 +80,7 @@ func mapToPullRequest(pr *github.PullRequest) (*PullRequest, error) {
 	return NewPullRequest(pr.Title, pr.HeadRefName, pr.Body, state, pr.Number, link), nil
 }
 
-func mapState(state string, labels []github.Label) (State, error) {
+func mapState(state string, labels []gitHubLabel) (State, error) {
 	switch state {
 	case "OPEN":
 		if isBlocked(labels) {
@@ -100,7 +99,7 @@ func mapState(state string, labels []github.Label) (State, error) {
 	}
 }
 
-func isBlocked(labels []github.Label) bool {
+func isBlocked(labels []gitHubLabel) bool {
 	for _, label := range labels {
 		if strings.EqualFold(label.Name, "DO NOT MERGE") {
 			return true
@@ -109,7 +108,7 @@ func isBlocked(labels []github.Label) bool {
 	return false
 }
 
-func isReleased(labels []github.Label) bool {
+func isReleased(labels []gitHubLabel) bool {
 	for _, label := range labels {
 		if strings.EqualFold(label.Name, "RELEASED") {
 			return true

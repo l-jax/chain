@@ -1,11 +1,14 @@
 package chain
 
-import "testing"
+import (
+	"chain/github"
+	"testing"
+)
 
 func TestGetPullRequests(t *testing.T) {
 
-	want := []*PullRequest{
-		{"my pull request", "some-branch", "some body", StateOpen, 2, 0},
+	want := []*github.PullRequest{
+		github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, 12, 14),
 	}
 
 	service := &serviceFake{pullRequests: want}
@@ -22,18 +25,18 @@ func TestGetPullRequests(t *testing.T) {
 }
 
 func TestGetChain(t *testing.T) {
-	releasedPr := &PullRequest{"remove something", "some-branch-123", "some body", StateReleased, 1, 0}
-	mergedPr := &PullRequest{"add something", "my-branch", "do not merge until #14 is released", StateOpen, 12, 14}
-	openPr := &PullRequest{"do something", "branch", "some body", StateOpen, 11, 0}
-	blockedPr := &PullRequest{"update something", "another-branch", "do not merge until #11 is released", StateBlocked, 14, 11}
+	releasedPr := github.NewPullRequest("release something", "release-branch", "this is released", github.StateReleased, 1, 0)
+	mergedPr := github.NewPullRequest("merge something", "my-branch", "do not merge until #14 is released", github.StateOpen, 12, 14)
+	openPr := github.NewPullRequest("add something", "my-branch", "message", github.StateOpen, 11, 0)
+	blockedPr := github.NewPullRequest("do something", "branch", "do not merge until #11 is released", github.StateBlocked, 14, 11)
 
-	want := []*PullRequest{
+	want := []*github.PullRequest{
 		mergedPr,
 		blockedPr,
 		openPr,
 	}
 
-	service := &serviceFake{pullRequests: []*PullRequest{openPr, mergedPr, releasedPr, blockedPr}}
+	service := &serviceFake{pullRequests: []*github.PullRequest{openPr, mergedPr, releasedPr, blockedPr}}
 	handler := chainHandler{repoService: service}
 
 	got, err := handler.GetChain(12)
@@ -54,9 +57,9 @@ func TestGetChain(t *testing.T) {
 }
 
 func TestGetChainErrorIfLooped(t *testing.T) {
-	service := &serviceFake{pullRequests: []*PullRequest{
-		{"add something", "my-branch", "do not merge until #11 is released", StateOpen, 12, 11},
-		{"do something", "branch", "do not merge until #12 is released", StateOpen, 11, 12},
+	service := &serviceFake{pullRequests: []*github.PullRequest{
+		github.NewPullRequest("add something", "my-branch", "do not merge until #11 is released", github.StateOpen, 12, 11),
+		github.NewPullRequest("merge something", "my-branch", "do not merge until #12 is released", github.StateMerged, 11, 12),
 	}}
 	handler := chainHandler{repoService: service}
 
@@ -72,14 +75,14 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 }
 
 type serviceFake struct {
-	pullRequests []*PullRequest
+	pullRequests []*github.PullRequest
 }
 
-func (a *serviceFake) listPullRequests() ([]*PullRequest, error) {
+func (a *serviceFake) ListPullRequests() ([]*github.PullRequest, error) {
 	return a.pullRequests, nil
 }
 
-func (a *serviceFake) getPullRequest(number uint) (*PullRequest, error) {
+func (a *serviceFake) GetPullRequest(number uint) (*github.PullRequest, error) {
 	for _, pull := range a.pullRequests {
 		if pull.Number() == number {
 			return pull, nil
