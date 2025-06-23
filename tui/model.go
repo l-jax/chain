@@ -54,7 +54,7 @@ func InitModel() (tea.Model, error) {
 
 	m.models = make([]tea.Model, 2)
 	m.models[activeView] = InitOpen(links)
-	m.models[chainView] = InitChain(chain)
+	m.models[chainView] = InitChain(chain, &links[0])
 	return m, nil
 }
 
@@ -83,7 +83,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.err = err
 				return m, func() tea.Msg { return errMsg{err: err} }
 			}
-			m.models[chainView] = InitChain(chain)
+			m.models[chainView] = InitChain(chain, &selected)
 			m.focussed = chainView
 		case key.Matches(msg, keys.Back):
 			m.focussed = activeView

@@ -25,6 +25,5 @@ var (
 			Foreground(white).
 			Padding(0, 1)
 	bodyStyle = lipgloss.NewStyle().
-			Foreground(grey).
-			Padding(1, 0)
+			Foreground(grey)
 )

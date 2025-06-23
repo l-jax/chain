@@ -9,14 +9,15 @@ import (
 )
 
 type Chain struct {
+	rootLink *Link
 	chain    []Link
 	loaded   bool
 	quitting bool
 	err      error
 }
 
-func InitChain(chain []Link) *Chain {
-	m := Chain{chain: chain}
+func InitChain(chain []Link, rootLink *Link) *Chain {
+	m := Chain{chain: chain, rootLink: rootLink}
 
 	m.loaded = true
 	return &m
@@ -49,10 +50,11 @@ func (m Chain) View() string {
 		lipgloss.Left,
 		lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			titleStyle.Render(m.chain[0].Title()),
-			labelStyle.Render(m.chain[0].Label().String()),
+			titleStyle.Render("chain"),
+			bodyStyle.Padding(0, 2).Render(m.rootLink.Title()),
+			labelStyle.Render(m.rootLink.Label().String()),
 		),
-		bodyStyle.Render(m.chain[0].Body()),
+		bodyStyle.Padding(1, 0).Render(m.rootLink.Body()),
 		m.PrepareChainTable(),
 	)
 }

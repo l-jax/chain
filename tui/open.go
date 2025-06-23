@@ -16,7 +16,7 @@ func InitOpen(links []Link) tea.Model {
 	m := Open{list: list.New([]list.Item{}, list.NewDefaultDelegate(), windowSize.Width/divisor, windowSize.Height-divisor)}
 
 	m.list.SetShowHelp(false)
-	m.list.Title = "open"
+	m.list.Title = "pull requests"
 	m.list.Styles.Title = titleStyle
 	m.list.Styles.NoItems = bodyStyle
 
