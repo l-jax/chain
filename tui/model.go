@@ -18,8 +18,8 @@ type errMsg struct {
 type view uint
 
 const (
-	activeView view = iota
-	chainView
+	listView view = iota
+	detailView
 )
 
 type Model struct {
@@ -51,8 +51,8 @@ func InitModel() (tea.Model, error) {
 	}
 
 	m.models = make([]tea.Model, 2)
-	m.models[activeView] = InitOpen(links)
-	m.models[chainView] = InitChain(chain, &links[0])
+	m.models[listView] = InitList(links)
+	m.models[detailView] = InitDetail(chain, &links[0])
 	return m, nil
 }
 
@@ -74,14 +74,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Enter):
-			selected := m.models[activeView].(Open).list.SelectedItem().(Link)
+			selected := m.models[listView].(List).list.SelectedItem().(Link)
 			m.handler.FetchChain(selected, false)
 			chain, err := m.handler.FetchChain(selected, false)
 			if err != nil {
 				m.err = err
 				return m, func() tea.Msg { return errMsg{err: err} }
 			}
-			m.models[chainView] = InitChain(chain, &selected)
+			m.models[detailView] = InitDetail(chain, &selected)
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
 			return m, tea.Quit
@@ -111,12 +111,12 @@ func (m Model) View() string {
 		return "Loading..."
 	}
 
-	active := m.models[activeView].View()
-	chain := m.models[chainView].View()
+	list := m.models[listView].View()
+	detail := m.models[detailView].View()
 
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		focussedStyle.Render(active),
-		unfocussedStyle.Render(chain),
+		focussedStyle.Render(list),
+		unfocussedStyle.Render(detail),
 	)
 }

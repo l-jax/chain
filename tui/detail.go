@@ -8,32 +8,32 @@ import (
 	"github.com/charmbracelet/lipgloss/table"
 )
 
-type Chain struct {
-	rootLink *Link
+type Detail struct {
+	link     *Link
 	chain    []Link
 	loaded   bool
 	quitting bool
 	err      error
 }
 
-func InitChain(chain []Link, rootLink *Link) *Chain {
-	m := Chain{chain: chain, rootLink: rootLink}
+func InitDetail(chain []Link, link *Link) *Detail {
+	m := Detail{chain: chain, link: link}
 
 	m.loaded = true
 	return &m
 }
 
-func (m Chain) Init() tea.Cmd {
+func (m Detail) Init() tea.Cmd {
 	return nil
 }
 
-func (m Chain) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Detail) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
 	return m, cmd
 }
 
-func (m Chain) View() string {
+func (m Detail) View() string {
 	if m.quitting {
 		return ""
 	}
@@ -51,15 +51,15 @@ func (m Chain) View() string {
 		lipgloss.JoinHorizontal(
 			lipgloss.Left,
 			titleStyle.Render("chain"),
-			bodyStyle.Padding(0, 2).Render(m.rootLink.Title()),
-			labelStyle.Render(m.rootLink.Label().String()),
+			bodyStyle.Padding(0, 2).Render(m.link.Title()),
+			labelStyle.Render(m.link.Label().String()),
 		),
-		bodyStyle.Padding(1, 0).Render(m.rootLink.Body()),
-		m.PrepareChainTable(),
+		bodyStyle.Padding(1, 0).Render(m.link.Body()),
+		m.RenderChain(),
 	)
 }
 
-func (m *Chain) PrepareChainTable() string {
+func (m *Detail) RenderChain() string {
 	rows := make([][]string, len(m.chain))
 	for i, link := range m.chain {
 		rows[i] = []string{

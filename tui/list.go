@@ -5,15 +5,15 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Open struct {
+type List struct {
 	list     list.Model
 	err      error
 	loaded   bool
 	quitting bool
 }
 
-func InitOpen(links []Link) tea.Model {
-	m := Open{list: list.New([]list.Item{}, list.NewDefaultDelegate(), windowSize.Width/divisor, windowSize.Height-divisor)}
+func InitList(links []Link) tea.Model {
+	m := List{list: list.New([]list.Item{}, list.NewDefaultDelegate(), windowSize.Width/divisor, windowSize.Height-divisor)}
 
 	m.list.SetShowHelp(false)
 	m.list.Title = "pull requests"
@@ -30,11 +30,11 @@ func InitOpen(links []Link) tea.Model {
 	return &m
 }
 
-func (m Open) Init() tea.Cmd {
+func (m List) Init() tea.Cmd {
 	return nil
 }
 
-func (m Open) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetSize(msg.Width/divisor, msg.Height-divisor)
@@ -44,7 +44,7 @@ func (m Open) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Open) View() string {
+func (m List) View() string {
 	if m.quitting {
 		return ""
 	}
@@ -60,7 +60,7 @@ func (m Open) View() string {
 	return m.list.View()
 }
 
-func (m Open) SelectedId() uint {
+func (m List) SelectedId() uint {
 	if item, ok := m.list.SelectedItem().(Link); ok {
 		return item.id
 	}
