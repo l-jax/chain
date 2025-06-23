@@ -15,16 +15,15 @@ type errMsg struct {
 	err error
 }
 
-type sessionState uint
+type view uint
 
 const (
-	activeView sessionState = iota
+	activeView view = iota
 	chainView
 )
 
 type Model struct {
 	models   []tea.Model
-	focussed sessionState
 	handler  *handler
 	loaded   bool
 	err      error
@@ -33,7 +32,6 @@ type Model struct {
 
 func InitModel() (tea.Model, error) {
 	m := &Model{
-		focussed: activeView,
 		handler:  initHandler(),
 		loaded:   false,
 		err:      nil,
@@ -75,7 +73,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loaded = true
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, keys.Enter) && m.focussed == activeView:
+		case key.Matches(msg, keys.Enter):
 			selected := m.models[activeView].(Open).list.SelectedItem().(Link)
 			m.handler.FetchChain(selected, false)
 			chain, err := m.handler.FetchChain(selected, false)
@@ -84,18 +82,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, func() tea.Msg { return errMsg{err: err} }
 			}
 			m.models[chainView] = InitChain(chain, &selected)
-			m.focussed = chainView
-		case key.Matches(msg, keys.Back):
-			m.focussed = activeView
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
 			return m, tea.Quit
 		}
 	}
 
-	var cmd tea.Cmd
-	m.models[m.focussed], cmd = m.models[m.focussed].Update(msg)
-	return m, cmd
+	var cmds []tea.Cmd
+	for i, model := range m.models {
+		var cmd tea.Cmd
+		m.models[i], cmd = model.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
@@ -114,25 +114,9 @@ func (m Model) View() string {
 	active := m.models[activeView].View()
 	chain := m.models[chainView].View()
 
-	switch m.focussed {
-	default:
-		return lipgloss.JoinHorizontal(
-			lipgloss.Left,
-			focussedStyle.Render(active),
-			unfocussedStyle.Render(chain),
-		)
-	case chainView:
-		return lipgloss.JoinHorizontal(
-			lipgloss.Left,
-			unfocussedStyle.Render(active),
-			focussedStyle.Render(chain),
-		)
-	}
-}
-
-func (m *Model) SetFocussed(state sessionState) {
-	if state >= sessionState(len(m.models)) {
-		return
-	}
-	m.focussed = state
+	return lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		focussedStyle.Render(active),
+		unfocussedStyle.Render(chain),
+	)
 }
