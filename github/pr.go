@@ -5,37 +5,33 @@ type PullRequest struct {
 	branch string
 	body   string
 	state  State
+	labels []string
 	number uint
-	chain  uint
 }
 
-func NewPullRequest(title, branch, body string, state State, number uint, chain uint) *PullRequest {
-	return &PullRequest{state: state, title: title, body: body, branch: branch, number: number, chain: chain}
+func NewPullRequest(title, branch, body string, state State, labels []string, number uint) *PullRequest {
+	return &PullRequest{title: title, body: body, branch: branch, state: state, labels: labels, number: number}
 }
 
-func (p PullRequest) Title() string  { return p.title }
-func (p PullRequest) Branch() string { return p.branch }
-func (p PullRequest) Body() string   { return p.body }
-func (p PullRequest) State() State   { return p.state }
-func (p PullRequest) Number() uint   { return p.number }
-func (p PullRequest) Chain() uint    { return p.chain }
+func (p PullRequest) Title() string    { return p.title }
+func (p PullRequest) Branch() string   { return p.branch }
+func (p PullRequest) Body() string     { return p.body }
+func (p PullRequest) State() State     { return p.state }
+func (p PullRequest) Labels() []string { return p.labels }
+func (p PullRequest) Number() uint     { return p.number }
 
 type State uint
 
 const (
 	StateOpen State = iota
-	StateBlocked
 	StateMerged
 	StateClosed
-	StateReleased
 )
 
 var stateName = map[State]string{
-	StateOpen:     "open",
-	StateBlocked:  "blocked",
-	StateMerged:   "merged",
-	StateClosed:   "closed",
-	StateReleased: "released",
+	StateOpen:   "open",
+	StateMerged: "merged",
+	StateClosed: "closed",
 }
 
 func (s State) String() string {

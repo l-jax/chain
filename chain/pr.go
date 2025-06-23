@@ -1,4 +1,4 @@
-package tui
+package chain
 
 type state uint
 
@@ -27,7 +27,7 @@ func (l state) String() string {
 	}
 }
 
-type pr struct {
+type Pr struct {
 	title  string
 	body   string
 	branch string
@@ -36,8 +36,8 @@ type pr struct {
 	linkid uint
 }
 
-func InitPr(title, body, branch string, id, linkid uint, state state) pr {
-	return pr{
+func InitPr(title, body, branch string, id, linkid uint, state state) Pr {
+	return Pr{
 		title:  title,
 		body:   body,
 		id:     id,
@@ -47,34 +47,11 @@ func InitPr(title, body, branch string, id, linkid uint, state state) pr {
 	}
 }
 
-func (l pr) FilterValue() string {
-	return l.title
-}
-
-func (l pr) Title() string {
-	return l.branch
-}
-
-func (l pr) Description() string {
-	return l.state.String()
-}
-
-func (l pr) Branch() string {
-	return l.branch
-}
-
-func (l pr) State() state {
-	return l.state
-}
-
-func (l pr) Id() uint {
-	return l.id
-}
-
-func (l pr) LinkId() uint {
-	return l.linkid
-}
-
-func (l pr) Body() string {
-	return l.body
-}
+func (l Pr) FilterValue() string { return l.title }
+func (l Pr) Title() string       { return l.branch }
+func (l Pr) Description() string { return l.state.String() }
+func (l Pr) Branch() string      { return l.branch }
+func (l Pr) State() state        { return l.state }
+func (l Pr) Id() uint            { return l.id }
+func (l Pr) LinkId() uint        { return l.linkid }
+func (l Pr) Body() string        { return l.body }

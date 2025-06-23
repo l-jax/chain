@@ -2,9 +2,6 @@ package github
 
 import (
 	"fmt"
-	"regexp"
-	"strconv"
-	"strings"
 )
 
 var (
@@ -33,7 +30,7 @@ func (a *Adaptor) GetPullRequest(number uint) (*PullRequest, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w %d: %w", ErrFailedToFetch, number, err)
 	}
-	return mapToPullRequest(pr)
+	return mapPr(pr)
 }
 
 func (a *Adaptor) ListPullRequests() ([]*PullRequest, error) {
@@ -44,7 +41,7 @@ func (a *Adaptor) ListPullRequests() ([]*PullRequest, error) {
 
 	pullRequests := make([]*PullRequest, 0, len(gitHubPrs))
 	for _, pr := range gitHubPrs {
-		pullResult, err := mapToPullRequest(pr)
+		pullResult, err := mapPr(pr)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
 		}
@@ -53,66 +50,29 @@ func (a *Adaptor) ListPullRequests() ([]*PullRequest, error) {
 	return pullRequests, nil
 }
 
-func findLink(body string) uint {
-	re := regexp.MustCompile(`do not merge until #(\d+)`)
-	match := re.FindStringSubmatch(body)
-
-	if match == nil {
-		return 0
-	}
-
-	link, err := strconv.ParseUint(match[1], 10, 32)
-	if err != nil {
-		return 0
-	}
-	return uint(link)
-}
-
-func mapToPullRequest(pr *gitHubPr) (*PullRequest, error) {
-	state, err := mapState(pr.State, pr.Labels)
+func mapPr(pr *gitHubPr) (*PullRequest, error) {
+	state, err := mapState(pr.State)
 
 	if err != nil {
 		return nil, fmt.Errorf("%w %s: %w", ErrFailedToMap, pr.HeadRefName, err)
 	}
 
-	link := findLink(pr.Body)
-
-	return NewPullRequest(pr.Title, pr.HeadRefName, pr.Body, state, pr.Number, link), nil
+	labels := make([]string, 0, len(pr.Labels))
+	for _, label := range pr.Labels {
+		labels = append(labels, label.Name)
+	}
+	return NewPullRequest(pr.Title, pr.HeadRefName, pr.Body, state, labels, pr.Number), nil
 }
 
-func mapState(state string, labels []gitHubLabel) (State, error) {
+func mapState(state string) (State, error) {
 	switch state {
 	case "OPEN":
-		if isBlocked(labels) {
-			return StateBlocked, nil
-		}
 		return StateOpen, nil
 	case "CLOSED":
 		return StateClosed, nil
 	case "MERGED":
-		if isReleased(labels) {
-			return StateReleased, nil
-		}
 		return StateMerged, nil
 	default:
 		return 0, fmt.Errorf("%w: %s", ErrUnexpectedState, state)
 	}
-}
-
-func isBlocked(labels []gitHubLabel) bool {
-	for _, label := range labels {
-		if strings.EqualFold(label.Name, "DO NOT MERGE") {
-			return true
-		}
-	}
-	return false
-}
-
-func isReleased(labels []gitHubLabel) bool {
-	for _, label := range labels {
-		if strings.EqualFold(label.Name, "RELEASED") {
-			return true
-		}
-	}
-	return false
 }

@@ -5,10 +5,21 @@ import (
 	"testing"
 )
 
+func TestFindLink(t *testing.T) {
+	body := "do not merge until #123 is released"
+	want := uint(123)
+
+	got := findLink(body)
+
+	if got != want {
+		t.Errorf("got %q want %q", got, want)
+	}
+}
+
 func TestGetPullRequests(t *testing.T) {
 
 	want := []*github.PullRequest{
-		github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, 12, 14),
+		github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, []string{}, 12),
 	}
 
 	service := &serviceFake{pullRequests: want}
@@ -25,10 +36,10 @@ func TestGetPullRequests(t *testing.T) {
 }
 
 func TestGetChain(t *testing.T) {
-	releasedPr := github.NewPullRequest("release something", "release-branch", "this is released", github.StateReleased, 1, 0)
-	mergedPr := github.NewPullRequest("merge something", "my-branch", "do not merge until #14 is released", github.StateOpen, 12, 14)
-	openPr := github.NewPullRequest("add something", "my-branch", "message", github.StateOpen, 11, 0)
-	blockedPr := github.NewPullRequest("do something", "branch", "do not merge until #11 is released", github.StateBlocked, 14, 11)
+	releasedPr := github.NewPullRequest("release something", "release-branch", "this is released", github.StateMerged, []string{"RELEASED"}, 1)
+	mergedPr := github.NewPullRequest("merge something", "my-branch", "do not merge until #14 is released", github.StateMerged, []string{}, 12)
+	openPr := github.NewPullRequest("add something", "my-branch", "message", github.StateOpen, []string{}, 11)
+	blockedPr := github.NewPullRequest("do something", "branch", "do not merge until #11 is released", github.StateOpen, []string{"DO NOT MERGE"}, 14)
 
 	want := []*github.PullRequest{
 		mergedPr,
@@ -50,7 +61,8 @@ func TestGetChain(t *testing.T) {
 	}
 
 	for i, link := range want {
-		if link != got[link.Number()] {
+
+		if link.Number() != got[link.Number()].Id() {
 			t.Errorf("expected pull %d to be %v, got %v", i, want[i], link)
 		}
 	}
@@ -58,8 +70,8 @@ func TestGetChain(t *testing.T) {
 
 func TestGetChainErrorIfLooped(t *testing.T) {
 	service := &serviceFake{pullRequests: []*github.PullRequest{
-		github.NewPullRequest("add something", "my-branch", "do not merge until #11 is released", github.StateOpen, 12, 11),
-		github.NewPullRequest("merge something", "my-branch", "do not merge until #12 is released", github.StateMerged, 11, 12),
+		github.NewPullRequest("add something", "my-branch", "do not merge until #11 is released", github.StateOpen, []string{}, 12),
+		github.NewPullRequest("merge something", "my-branch", "do not merge until #12 is released", github.StateMerged, []string{}, 11),
 	}}
 	handler := chainHandler{repoService: service}
 

@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"chain/chain"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -74,7 +76,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Enter):
-			selected := m.models[listView].(List).list.SelectedItem().(pr)
+			selected := m.models[listView].(List).list.SelectedItem().(chain.Pr)
 			m.handler.FetchChain(selected, false)
 			chain, err := m.handler.FetchChain(selected, false)
 			if err != nil {

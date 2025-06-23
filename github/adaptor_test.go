@@ -9,29 +9,16 @@ import (
 var stateMappingTests = map[State]struct {
 	branch, ghState, label string
 }{
-	StateOpen:     {branch: "my-open-branch", ghState: "OPEN", label: ""},
-	StateBlocked:  {branch: "my-blocked-branch", ghState: "OPEN", label: "DO NoT MeRGE"},
-	StateMerged:   {branch: "my-merged-branch", ghState: "MERGED", label: ""},
-	StateReleased: {branch: "my-released-branch", ghState: "MERGED", label: "RELEaSED"},
-	StateClosed:   {branch: "my-closed-branch", ghState: "CLOSED", label: "DO NOT MERGE"},
-}
-
-func TestFindLink(t *testing.T) {
-	body := "do not merge until #123 is released"
-	want := uint(123)
-
-	got := findLink(body)
-
-	if got != want {
-		t.Errorf("got %q want %q", got, want)
-	}
+	StateOpen:   {branch: "my-open-branch", ghState: "OPEN", label: "DO NOT MERGE"},
+	StateMerged: {branch: "my-merged-branch", ghState: "MERGED", label: "RELEASED"},
+	StateClosed: {branch: "my-closed-branch", ghState: "CLOSED", label: ""},
 }
 
 func TestMapToPullRequest(t *testing.T) {
 	for state, test := range stateMappingTests {
 		t.Run(state.String(), func(t *testing.T) {
 			pr := givenAGitHubPr(test.branch, test.ghState, []gitHubLabel{{Name: test.label}}, 0)
-			got, err := mapToPullRequest(&pr)
+			got, err := mapPr(&pr)
 
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
@@ -48,7 +35,7 @@ func TestMapToPullShouldErrorIfUnexpectedState(t *testing.T) {
 	mockPr := givenAGitHubPr("some-branch", state, nil, 0)
 	want := fmt.Errorf("%w some-branch: %w: %s", ErrFailedToMap, ErrUnexpectedState, state)
 
-	_, err := mapToPullRequest(&mockPr)
+	_, err := mapPr(&mockPr)
 
 	assertError(t, err, want)
 }
@@ -151,10 +138,6 @@ func assertPrMappedCorrectly(t *testing.T, got *PullRequest, want gitHubPr, stat
 
 	if got.State() != state {
 		t.Errorf("got state %q want %q", got.State(), state)
-	}
-
-	if got.Chain() != chain {
-		t.Errorf("got chain %d want %d", got.Chain(), chain)
 	}
 }
 

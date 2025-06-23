@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"chain/chain"
 	"strconv"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -9,14 +10,14 @@ import (
 )
 
 type Detail struct {
-	pr       *pr
-	chain    []pr
+	pr       *chain.Pr
+	chain    []chain.Pr
 	loaded   bool
 	quitting bool
 	err      error
 }
 
-func InitDetail(chain []pr, pr *pr) *Detail {
+func InitDetail(chain []chain.Pr, pr *chain.Pr) *Detail {
 	m := Detail{chain: chain, pr: pr}
 
 	m.loaded = true

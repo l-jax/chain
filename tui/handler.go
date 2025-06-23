@@ -2,23 +2,21 @@ package tui
 
 import (
 	"chain/chain"
-	"chain/github"
-	"fmt"
 )
 
 type handler struct {
-	links  []pr
-	chains map[uint][]pr
+	links  []chain.Pr
+	chains map[uint][]chain.Pr
 }
 
 func initHandler() *handler {
 	return &handler{
-		links:  []pr{},
-		chains: make(map[uint][]pr),
+		links:  []chain.Pr{},
+		chains: make(map[uint][]chain.Pr),
 	}
 }
 
-func (h *handler) FetchOpen(refresh bool) ([]pr, error) {
+func (h *handler) FetchOpen(refresh bool) ([]chain.Pr, error) {
 	if !refresh && len(h.links) > 0 {
 		return h.links, nil
 	}
@@ -29,20 +27,16 @@ func (h *handler) FetchOpen(refresh bool) ([]pr, error) {
 		return nil, err
 	}
 
-	h.links = make([]pr, len(pulls))
+	h.links = make([]chain.Pr, len(pulls))
 	for i, pull := range pulls {
-		link, err := mapPr(pull)
-		if err != nil {
-			return nil, err
-		}
-		h.links[i] = *link
+		h.links[i] = *pull
 	}
 	return h.links, nil
 }
 
-func (h *handler) FetchChain(link pr, refresh bool) ([]pr, error) {
-	if !refresh && h.chains[link.id] != nil {
-		return h.chains[link.id], nil
+func (h *handler) FetchChain(link chain.Pr, refresh bool) ([]chain.Pr, error) {
+	if !refresh && h.chains[link.Id()] != nil {
+		return h.chains[link.Id()], nil
 	}
 
 	chainHandler := chain.NewChainHandler()
@@ -51,48 +45,11 @@ func (h *handler) FetchChain(link pr, refresh bool) ([]pr, error) {
 		return nil, err
 	}
 
-	links := make([]pr, 0, len(pull))
+	links := make([]chain.Pr, 0, len(pull))
 	for _, pr := range pull {
-		link, err := mapPr(pr)
-		if err != nil {
-			return nil, err
-		}
-		links = append(links, *link)
+		links = append(links, *pr)
 	}
 
-	h.chains[link.id] = links
+	h.chains[link.Id()] = links
 	return links, nil
-}
-
-func mapPr(pr *github.PullRequest) (*pr, error) {
-	label, err := mapLabel(pr.State())
-	if err != nil {
-		return nil, err
-	}
-	link := InitPr(
-		pr.Title(),
-		pr.Body(),
-		pr.Branch(),
-		pr.Number(),
-		pr.Chain(),
-		label,
-	)
-	return &link, nil
-}
-
-func mapLabel(state github.State) (state, error) {
-	switch state {
-	case github.StateOpen:
-		return open, nil
-	case github.StateBlocked:
-		return blocked, nil
-	case github.StateMerged:
-		return merged, nil
-	case github.StateReleased:
-		return released, nil
-	case github.StateClosed:
-		return closed, nil
-	default:
-		return open, fmt.Errorf("unknown state: %s", state)
-	}
 }
