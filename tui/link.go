@@ -3,8 +3,8 @@ package tui
 type label uint
 
 const (
-	open label = iota
-	blocked
+	blocked label = iota
+	open
 	merged
 	released
 	closed
@@ -42,6 +42,8 @@ func NewLink(title, body, branch string, id, linkid uint, label label) Link {
 		body:   body,
 		id:     id,
 		linkid: linkid,
+		label:  label,
+		branch: branch,
 	}
 }
 
@@ -50,7 +52,7 @@ func (l Link) FilterValue() string {
 }
 
 func (l Link) Title() string {
-	return l.title
+	return l.branch + " - " + l.title
 }
 
 func (l Link) Description() string {

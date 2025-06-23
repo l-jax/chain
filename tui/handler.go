@@ -89,6 +89,8 @@ func mapLabel(state chain.State) (label, error) {
 		return merged, nil
 	case chain.StateReleased:
 		return released, nil
+	case chain.StateClosed:
+		return closed, nil
 	default:
 		return open, fmt.Errorf("unknown state: %s", state)
 	}
