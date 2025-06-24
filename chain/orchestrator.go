@@ -5,12 +5,6 @@ import (
 	"fmt"
 )
 
-var (
-	ErrFailedToFetch = fmt.Errorf("failed to fetch")
-	ErrFailedToMap   = fmt.Errorf("failed to map pull request")
-	ErrLoopedChain   = fmt.Errorf("chain has a loop")
-)
-
 type gitHubAdaptor interface {
 	GetPr(number uint) (*github.PullRequest, error)
 	ListOpenPrs() ([]*github.PullRequest, error)
@@ -46,7 +40,29 @@ func (o *orchestrator) ListOpenPrs() ([]*Pr, error) {
 	return prs, nil
 }
 
-func (o *orchestrator) GetChain(number uint) (map[uint]*Pr, error) {
+func (o *orchestrator) GetPrsLinkedTo(number uint) (map[uint]*Pr, error) {
+	linkedPrs := make(map[uint]*Pr)
+
+	for number != 0 {
+		pr, err := o.getPr(number)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if linkedPrs[pr.Id()] != nil {
+			return nil, ErrLoopedChain
+		}
+
+		linkedPrs[pr.Id()] = pr
+
+		number = findLinkedPr(pr.Body())
+	}
+
+	return linkedPrs, nil
+}
+
+func (o *orchestrator) getPr(number uint) (*Pr, error) {
 	gitHubPr, err := o.gitHubAdaptor.GetPr(number)
 
 	if err != nil {
@@ -54,32 +70,8 @@ func (o *orchestrator) GetChain(number uint) (map[uint]*Pr, error) {
 	}
 
 	pr, err := mapPr(gitHubPr)
-
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToMap, err)
 	}
-
-	chain := map[uint]*Pr{gitHubPr.Number(): pr}
-
-	for findLink(gitHubPr.Body()) != 0 {
-		link, err := o.gitHubAdaptor.GetPr(findLink(gitHubPr.Body()))
-
-		if err != nil {
-			return nil, err
-		}
-
-		if chain[link.Number()] != nil {
-			return nil, ErrLoopedChain
-		}
-
-		pr, err = mapPr(link)
-		if err != nil {
-			return nil, err
-		}
-
-		chain[link.Number()] = pr
-		gitHubPr = link
-	}
-
-	return chain, nil
+	return pr, nil
 }

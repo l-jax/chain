@@ -40,7 +40,7 @@ func (h *handler) FetchChain(link chain.Pr, refresh bool) ([]chain.Pr, error) {
 	}
 
 	chainHandler := chain.InitOrchestrator()
-	pull, err := chainHandler.GetChain(link.Id())
+	pull, err := chainHandler.GetPrsLinkedTo(link.Id())
 	if err != nil {
 		return nil, err
 	}

@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+const (
+	releasedLabel   = "RELEASED"
+	blockedLabel    = "DO NOT MERGE"
+	linkedPrPattern = `do not merge until #(\d+)`
+)
+
 func mapPr(pr *github.PullRequest) (*Pr, error) {
 	state, err := mapState(pr.State(), pr.Labels())
 	if err != nil {
@@ -19,7 +25,7 @@ func mapPr(pr *github.PullRequest) (*Pr, error) {
 		pr.Body(),
 		pr.Branch(),
 		pr.Number(),
-		findLink(pr.Body()),
+		findLinkedPr(pr.Body()),
 		state,
 	)
 	return &link, nil
@@ -28,42 +34,33 @@ func mapPr(pr *github.PullRequest) (*Pr, error) {
 func mapState(state github.State, labels []string) (state, error) {
 	switch state {
 	case github.StateOpen:
-		if isBlocked(labels) {
+		if labelsContains(labels, blockedLabel) {
 			return blocked, nil
 		}
 		return open, nil
 	case github.StateClosed:
 		return closed, nil
 	case github.StateMerged:
-		if isReleased(labels) {
+		if labelsContains(labels, releasedLabel) {
 			return released, nil
 		}
 		return merged, nil
 	default:
-		return 0, fmt.Errorf("unexpected state: %s", state)
+		return 0, fmt.Errorf("%w: %s", ErrUnexpectedState, state)
 	}
 }
 
-func isBlocked(labels []string) bool {
+func labelsContains(labels []string, label string) bool {
 	for _, label := range labels {
-		if strings.EqualFold(label, "DO NOT MERGE") {
+		if strings.EqualFold(label, label) {
 			return true
 		}
 	}
 	return false
 }
 
-func isReleased(labels []string) bool {
-	for _, label := range labels {
-		if strings.EqualFold(label, "RELEASED") {
-			return true
-		}
-	}
-	return false
-}
-
-func findLink(body string) uint {
-	re := regexp.MustCompile(`do not merge until #(\d+)`)
+func findLinkedPr(body string) uint {
+	re := regexp.MustCompile(linkedPrPattern)
 	match := re.FindStringSubmatch(body)
 
 	if match == nil {

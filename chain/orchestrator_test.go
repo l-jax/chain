@@ -5,18 +5,7 @@ import (
 	"testing"
 )
 
-func TestFindLink(t *testing.T) {
-	body := "do not merge until #123 is released"
-	want := uint(123)
-
-	got := findLink(body)
-
-	if got != want {
-		t.Errorf("got %q want %q", got, want)
-	}
-}
-
-func TestGetPullRequests(t *testing.T) {
+func TestListOpenPrs(t *testing.T) {
 
 	want := []*github.PullRequest{
 		github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, []string{}, 12),
@@ -50,7 +39,7 @@ func TestGetChain(t *testing.T) {
 	service := &serviceFake{pullRequests: []*github.PullRequest{openPr, mergedPr, releasedPr, blockedPr}}
 	handler := orchestrator{gitHubAdaptor: service}
 
-	got, err := handler.GetChain(12)
+	got, err := handler.GetPrsLinkedTo(12)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -75,7 +64,7 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 	}}
 	handler := orchestrator{gitHubAdaptor: service}
 
-	_, err := handler.GetChain(12)
+	_, err := handler.GetPrsLinkedTo(12)
 
 	if err == nil {
 		t.Fatalf("expected error")
