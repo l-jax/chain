@@ -6,11 +6,11 @@ import (
 	"github.com/cli/go-gh/v2"
 )
 
-const jsonFields = "title,body,url,state,labels,mergeable,headRefName,number"
+const jsonFields = "title,body,state,labels,headRefName,number"
 
 type port struct{}
 
-func (p port) GetPr(number string) (*gitHubPr, error) {
+func (p *port) GetPr(number string) (*gitHubPr, error) {
 	out, _, err := gh.Exec("pr", "view", number, "--json", jsonFields)
 	if err != nil {
 		return nil, err
@@ -21,11 +21,10 @@ func (p port) GetPr(number string) (*gitHubPr, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return &pr, nil
 }
 
-func (p port) ListActivePrs() ([]*gitHubPr, error) {
+func (p *port) ListActivePrs() ([]*gitHubPr, error) {
 	out, _, err := gh.Exec("pr", "list", "--author", "@me", "--json", jsonFields)
 	if err != nil {
 		return nil, err

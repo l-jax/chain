@@ -97,10 +97,8 @@ func givenAGitHubPr(branch, state string, labels []gitHubLabel, chain uint) gitH
 		Title:       "mock",
 		Body:        fmt.Sprintf("do not merge until #%d is released", chain),
 		HeadRefName: branch,
-		Url:         "github.com",
 		State:       state,
 		Labels:      labels,
-		Mergeable:   "true",
 		Number:      1,
 	}
 	return mockPr

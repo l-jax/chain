@@ -1,14 +1,6 @@
 package github
 
-import (
-	"fmt"
-)
-
-var (
-	ErrFailedToFetch   = fmt.Errorf("failed to fetch")
-	ErrFailedToMap     = fmt.Errorf("failed to map pull request")
-	ErrUnexpectedState = fmt.Errorf("unexpected state")
-)
+import "fmt"
 
 type gitHubPort interface {
 	GetPr(number string) (*gitHubPr, error)
@@ -20,9 +12,7 @@ type Adaptor struct {
 }
 
 func NewAdaptor() *Adaptor {
-	return &Adaptor{
-		port: port{},
-	}
+	return &Adaptor{port: &port{}}
 }
 
 func (a *Adaptor) GetPr(number uint) (*PullRequest, error) {

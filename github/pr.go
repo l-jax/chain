@@ -10,7 +10,14 @@ type PullRequest struct {
 }
 
 func NewPullRequest(title, branch, body string, state State, labels []string, number uint) *PullRequest {
-	return &PullRequest{title: title, body: body, branch: branch, state: state, labels: labels, number: number}
+	return &PullRequest{
+		title:  title,
+		branch: branch,
+		body:   body,
+		state:  state,
+		labels: labels,
+		number: number,
+	}
 }
 
 func (p PullRequest) Title() string    { return p.title }
