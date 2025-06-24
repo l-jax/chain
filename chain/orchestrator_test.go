@@ -12,7 +12,7 @@ func TestListOpenPrs(t *testing.T) {
 	}
 	service := &serviceFake{prs: prs}
 
-	handler := orchestrator{gitHubAdaptor: service}
+	handler := Orchestrator{gitHubAdaptor: service}
 
 	got, err := handler.ListOpenPrs()
 	if err != nil {
@@ -34,7 +34,7 @@ func TestGetPrsLinkedTo(t *testing.T) {
 	}
 
 	service := &serviceFake{prs: []*github.PullRequest{unrelatedPr, linkedPrs[0], linkedPrs[1], linkedPrs[2]}}
-	handler := orchestrator{gitHubAdaptor: service}
+	handler := Orchestrator{gitHubAdaptor: service}
 
 	got, err := handler.GetPrsLinkedTo(12)
 
@@ -60,7 +60,7 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 	}
 
 	service := &serviceFake{prs: prs}
-	handler := orchestrator{gitHubAdaptor: service}
+	handler := Orchestrator{gitHubAdaptor: service}
 
 	_, err := handler.GetPrsLinkedTo(12)
 

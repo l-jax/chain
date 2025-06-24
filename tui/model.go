@@ -26,7 +26,7 @@ const (
 
 type Model struct {
 	models   []tea.Model
-	handler  *handler
+	handler  *chainAdaptor
 	loaded   bool
 	err      error
 	quitting bool
@@ -34,19 +34,19 @@ type Model struct {
 
 func InitModel() (tea.Model, error) {
 	m := &Model{
-		handler:  initHandler(),
+		handler:  initChainAdaptor(),
 		loaded:   false,
 		err:      nil,
 		quitting: false,
 	}
 
-	links, err := m.handler.FetchOpen(true)
+	links, err := m.handler.ListOpenPrs(true)
 	if err != nil {
 		m.err = err
 		return nil, err
 	}
 
-	chain, err := m.handler.FetchChain(links[0], true)
+	chain, err := m.handler.GetPrsLinkedTo(links[0], true)
 	if err != nil {
 		m.err = err
 		return nil, err
@@ -54,7 +54,7 @@ func InitModel() (tea.Model, error) {
 
 	m.models = make([]tea.Model, 2)
 	m.models[listView] = InitList(links)
-	m.models[detailView] = InitDetail(chain, &links[0])
+	m.models[detailView] = InitDetail(chain, links[0])
 	return m, nil
 }
 
@@ -76,14 +76,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Enter):
-			selected := m.models[listView].(List).list.SelectedItem().(chain.Pr)
-			m.handler.FetchChain(selected, false)
-			chain, err := m.handler.FetchChain(selected, false)
+			selected := m.models[listView].(List).list.SelectedItem().(*chain.Pr)
+			m.handler.GetPrsLinkedTo(selected, false)
+			chain, err := m.handler.GetPrsLinkedTo(selected, false)
 			if err != nil {
 				m.err = err
 				return m, func() tea.Msg { return errMsg{err: err} }
 			}
-			m.models[detailView] = InitDetail(chain, &selected)
+			m.models[detailView] = InitDetail(chain, selected)
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
 			return m, tea.Quit

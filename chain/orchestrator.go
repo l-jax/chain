@@ -10,18 +10,18 @@ type gitHubAdaptor interface {
 	ListOpenPrs() ([]*github.PullRequest, error)
 }
 
-type orchestrator struct {
+type Orchestrator struct {
 	gitHubAdaptor gitHubAdaptor
 }
 
-func InitOrchestrator() *orchestrator {
+func InitOrchestrator() *Orchestrator {
 	adaptor := github.NewAdaptor()
-	return &orchestrator{
+	return &Orchestrator{
 		gitHubAdaptor: adaptor,
 	}
 }
 
-func (o *orchestrator) ListOpenPrs() ([]*Pr, error) {
+func (o *Orchestrator) ListOpenPrs() ([]*Pr, error) {
 	gitHubPrs, err := o.gitHubAdaptor.ListOpenPrs()
 
 	if err != nil {
@@ -40,7 +40,7 @@ func (o *orchestrator) ListOpenPrs() ([]*Pr, error) {
 	return prs, nil
 }
 
-func (o *orchestrator) GetPrsLinkedTo(number uint) (map[uint]*Pr, error) {
+func (o *Orchestrator) GetPrsLinkedTo(number uint) (map[uint]*Pr, error) {
 	linkedPrs := make(map[uint]*Pr)
 
 	for number != 0 {
@@ -62,7 +62,7 @@ func (o *orchestrator) GetPrsLinkedTo(number uint) (map[uint]*Pr, error) {
 	return linkedPrs, nil
 }
 
-func (o *orchestrator) getPr(number uint) (*Pr, error) {
+func (o *Orchestrator) getPr(number uint) (*Pr, error) {
 	gitHubPr, err := o.gitHubAdaptor.GetPr(number)
 
 	if err != nil {

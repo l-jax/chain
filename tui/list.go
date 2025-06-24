@@ -14,7 +14,7 @@ type List struct {
 	quitting bool
 }
 
-func InitList(prs []chain.Pr) tea.Model {
+func InitList(prs []*chain.Pr) tea.Model {
 	m := List{list: list.New([]list.Item{}, list.NewDefaultDelegate(), windowSize.Width/divisor, windowSize.Height-divisor)}
 
 	m.list.SetShowHelp(false)
@@ -63,7 +63,7 @@ func (m List) View() string {
 }
 
 func (m List) SelectedId() uint {
-	if item, ok := m.list.SelectedItem().(chain.Pr); ok {
+	if item, ok := m.list.SelectedItem().(*chain.Pr); ok {
 		return item.Id()
 	}
 	return 0
