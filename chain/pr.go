@@ -9,8 +9,8 @@ type Pr struct {
 	linkid uint
 }
 
-func InitPr(title, body, branch string, id, linkid uint, state state) Pr {
-	return Pr{
+func NewPr(title, body, branch string, id, linkid uint, state state) *Pr {
+	return &Pr{
 		title:  title,
 		body:   body,
 		id:     id,

@@ -20,7 +20,7 @@ func mapPr(pr *github.PullRequest) (*Pr, error) {
 		return nil, err
 	}
 
-	link := InitPr(
+	mapped := NewPr(
 		pr.Title(),
 		pr.Body(),
 		pr.Branch(),
@@ -28,7 +28,7 @@ func mapPr(pr *github.PullRequest) (*Pr, error) {
 		findLinkedPr(pr.Body()),
 		state,
 	)
-	return &link, nil
+	return mapped, nil
 }
 
 func mapState(state github.State, labels []string) (state, error) {
@@ -51,8 +51,8 @@ func mapState(state github.State, labels []string) (state, error) {
 }
 
 func labelsContains(labels []string, label string) bool {
-	for _, label := range labels {
-		if strings.EqualFold(label, label) {
+	for _, l := range labels {
+		if strings.EqualFold(l, label) {
 			return true
 		}
 	}
