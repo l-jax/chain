@@ -6,12 +6,12 @@ import (
 )
 
 func TestListOpenPrs(t *testing.T) {
-
-	want := []*github.PullRequest{
+	prs := []*github.PullRequest{
 		github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, []string{}, 12),
+		github.NewPullRequest("do something", "branch", "do not merge until #11 is released", github.StateOpen, []string{"DO NOT MERGE"}, 14),
 	}
+	service := &serviceFake{prs: prs}
 
-	service := &serviceFake{pullRequests: want}
 	handler := orchestrator{gitHubAdaptor: service}
 
 	got, err := handler.ListOpenPrs()
@@ -19,24 +19,21 @@ func TestListOpenPrs(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if len(got) != len(want) {
-		t.Fatalf("expected %d pull requests, got %d", len(want), len(got))
+	if len(got) != len(prs) {
+		t.Fatalf("expected %d pull requests, got %d", len(prs), len(got))
 	}
 }
 
-func TestGetChain(t *testing.T) {
-	releasedPr := github.NewPullRequest("release something", "release-branch", "this is released", github.StateMerged, []string{"RELEASED"}, 1)
-	mergedPr := github.NewPullRequest("merge something", "my-branch", "do not merge until #14 is released", github.StateMerged, []string{}, 12)
-	openPr := github.NewPullRequest("add something", "my-branch", "message", github.StateOpen, []string{}, 11)
-	blockedPr := github.NewPullRequest("do something", "branch", "do not merge until #11 is released", github.StateOpen, []string{"DO NOT MERGE"}, 14)
+func TestGetPrsLinkedTo(t *testing.T) {
+	unrelatedPr := github.NewPullRequest("", "", "", github.StateMerged, []string{"RELEASED"}, 1)
 
-	want := []*github.PullRequest{
-		mergedPr,
-		blockedPr,
-		openPr,
+	linkedPrs := []*github.PullRequest{
+		github.NewPullRequest("", "", "do not merge until #14 is released", github.StateMerged, []string{}, 12),
+		github.NewPullRequest("", "", "", github.StateOpen, []string{}, 11),
+		github.NewPullRequest("", "", "do not merge until #11 is released", github.StateOpen, []string{"DO NOT MERGE"}, 14),
 	}
 
-	service := &serviceFake{pullRequests: []*github.PullRequest{openPr, mergedPr, releasedPr, blockedPr}}
+	service := &serviceFake{prs: []*github.PullRequest{unrelatedPr, linkedPrs[0], linkedPrs[1], linkedPrs[2]}}
 	handler := orchestrator{gitHubAdaptor: service}
 
 	got, err := handler.GetPrsLinkedTo(12)
@@ -45,23 +42,24 @@ func TestGetChain(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if len(got) != len(want) {
-		t.Fatalf("expected %d pulls, got %d", len(want), len(got))
+	if len(got) != len(linkedPrs) {
+		t.Fatalf("expected %d pulls, got %d", len(linkedPrs), len(got))
 	}
 
-	for i, link := range want {
-
-		if link.Number() != got[link.Number()].Id() {
-			t.Errorf("expected pull %d to be %v, got %v", i, want[i], link)
+	for i, pr := range linkedPrs {
+		if pr.Number() != got[pr.Number()].Id() {
+			t.Errorf("expected pull %d to be %v, got %v", i, linkedPrs[i], pr)
 		}
 	}
 }
 
 func TestGetChainErrorIfLooped(t *testing.T) {
-	service := &serviceFake{pullRequests: []*github.PullRequest{
+	prs := []*github.PullRequest{
 		github.NewPullRequest("add something", "my-branch", "do not merge until #11 is released", github.StateOpen, []string{}, 12),
 		github.NewPullRequest("merge something", "my-branch", "do not merge until #12 is released", github.StateMerged, []string{}, 11),
-	}}
+	}
+
+	service := &serviceFake{prs: prs}
 	handler := orchestrator{gitHubAdaptor: service}
 
 	_, err := handler.GetPrsLinkedTo(12)
@@ -76,15 +74,15 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 }
 
 type serviceFake struct {
-	pullRequests []*github.PullRequest
+	prs []*github.PullRequest
 }
 
 func (a *serviceFake) ListOpenPrs() ([]*github.PullRequest, error) {
-	return a.pullRequests, nil
+	return a.prs, nil
 }
 
 func (a *serviceFake) GetPr(number uint) (*github.PullRequest, error) {
-	for _, pull := range a.pullRequests {
+	for _, pull := range a.prs {
 		if pull.Number() == number {
 			return pull, nil
 		}
