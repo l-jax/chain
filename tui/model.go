@@ -38,21 +38,21 @@ func InitModel() (tea.Model, error) {
 		quitting: false,
 	}
 
-	links, err := m.handler.ListItems(true)
+	items, err := m.handler.ListItems(true)
 	if err != nil {
 		m.err = err
 		return nil, err
 	}
 
-	chain, err := m.handler.GetItemsLinkedTo(links[0], true)
+	linkedItems, err := m.handler.GetItemsLinkedTo(items[0], true)
 	if err != nil {
 		m.err = err
 		return nil, err
 	}
 
 	m.models = make([]tea.Model, 2)
-	m.models[listView] = InitList(links)
-	m.models[detailView] = InitDetail(chain, links[0])
+	m.models[listView] = InitList(items)
+	m.models[detailView] = InitDetail(linkedItems, items[0])
 	return m, nil
 }
 
@@ -75,13 +75,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, keys.Enter):
 			selected := m.models[listView].(List).list.SelectedItem().(*Item)
-			m.handler.GetItemsLinkedTo(selected, false)
-			chain, err := m.handler.GetItemsLinkedTo(selected, false)
+			linkedItems, err := m.handler.GetItemsLinkedTo(selected, false)
 			if err != nil {
 				m.err = err
 				return m, func() tea.Msg { return errMsg{err: err} }
 			}
-			m.models[detailView] = InitDetail(chain, selected)
+			m.models[detailView] = InitDetail(linkedItems, selected)
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
 			return m, tea.Quit

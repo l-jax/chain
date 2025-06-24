@@ -64,7 +64,7 @@ func (m *Detail) RenderChain() string {
 	for i, item := range m.chain {
 		rows[i] = []string{
 			strconv.FormatUint(uint64(item.Id()), 10),
-			item.Title(),
+			item.Description(),
 			item.Label(),
 		}
 	}
