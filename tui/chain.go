@@ -4,6 +4,8 @@ import (
 	"chain/chain"
 )
 
+//TODO: map chain.Pr to tui model that implements list.Item
+
 type chainAdaptor struct {
 	orchestrator *chain.Orchestrator
 	openPrs      []*chain.Pr

@@ -20,9 +20,9 @@ func NewPr(title, body, branch string, id, linkid uint, state state) *Pr {
 	}
 }
 
-func (l Pr) FilterValue() string { return l.title }
-func (l Pr) Title() string       { return l.branch }
-func (l Pr) Description() string { return l.state.String() }
+func (l Pr) FilterValue() string { return l.title }          //TODO: move to tui
+func (l Pr) Title() string       { return l.branch }         //TODO: move to tui
+func (l Pr) Description() string { return l.state.String() } //TODO: move to tui
 func (l Pr) Branch() string      { return l.branch }
 func (l Pr) State() state        { return l.state }
 func (l Pr) Id() uint            { return l.id }
