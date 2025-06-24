@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"chain/chain"
 	"strconv"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -10,15 +9,15 @@ import (
 )
 
 type Detail struct {
-	pr       *chain.Pr
-	chain    []chain.Pr
+	item     *Item
+	chain    []*Item
 	loaded   bool
 	quitting bool
 	err      error
 }
 
-func InitDetail(chain []chain.Pr, pr *chain.Pr) *Detail {
-	m := Detail{chain: chain, pr: pr}
+func InitDetail(chain []*Item, item *Item) *Detail {
+	m := Detail{chain: chain, item: item}
 
 	m.loaded = true
 	return &m
@@ -52,21 +51,21 @@ func (m Detail) View() string {
 		lipgloss.JoinHorizontal(
 			lipgloss.Left,
 			titleStyle.Render("chain"),
-			bodyStyle.Padding(0, 2).Render(m.pr.Title()),
-			labelStyle.Render(m.pr.State().String()),
+			bodyStyle.Padding(0, 2).Render(m.item.Title()),
+			labelStyle.Render(m.item.Label()),
 		),
-		bodyStyle.Padding(1, 0).Render(m.pr.Body()),
+		bodyStyle.Padding(1, 0).Render(m.item.Description()),
 		m.RenderChain(),
 	)
 }
 
 func (m *Detail) RenderChain() string {
 	rows := make([][]string, len(m.chain))
-	for i, pr := range m.chain {
+	for i, item := range m.chain {
 		rows[i] = []string{
-			strconv.FormatUint(uint64(pr.Id()), 10),
-			pr.Branch(),
-			pr.State().String(),
+			strconv.FormatUint(uint64(item.Id()), 10),
+			item.Title(),
+			item.Label(),
 		}
 	}
 

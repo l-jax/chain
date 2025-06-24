@@ -20,14 +20,12 @@ func NewPr(title, body, branch string, id, linkid uint, state state) *Pr {
 	}
 }
 
-func (l Pr) FilterValue() string { return l.title }          //TODO: move to tui
-func (l Pr) Title() string       { return l.branch }         //TODO: move to tui
-func (l Pr) Description() string { return l.state.String() } //TODO: move to tui
-func (l Pr) Branch() string      { return l.branch }
-func (l Pr) State() state        { return l.state }
-func (l Pr) Id() uint            { return l.id }
-func (l Pr) LinkId() uint        { return l.linkid }
-func (l Pr) Body() string        { return l.body }
+func (p Pr) Title() string  { return p.title }
+func (p Pr) Branch() string { return p.branch }
+func (p Pr) State() state   { return p.state }
+func (p Pr) Id() uint       { return p.id }
+func (p Pr) LinkId() uint   { return p.linkid }
+func (p Pr) Body() string   { return p.body }
 
 type state uint
 
@@ -39,8 +37,8 @@ const (
 	closed
 )
 
-func (l state) String() string {
-	switch l {
+func (s state) String() string {
+	switch s {
 	case state(open):
 		return "open"
 	case state(blocked):

@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"chain/chain"
-
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -40,13 +38,13 @@ func InitModel() (tea.Model, error) {
 		quitting: false,
 	}
 
-	links, err := m.handler.ListOpenPrs(true)
+	links, err := m.handler.ListItems(true)
 	if err != nil {
 		m.err = err
 		return nil, err
 	}
 
-	chain, err := m.handler.GetPrsLinkedTo(links[0], true)
+	chain, err := m.handler.GetItemsLinkedTo(links[0], true)
 	if err != nil {
 		m.err = err
 		return nil, err
@@ -76,9 +74,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Enter):
-			selected := m.models[listView].(List).list.SelectedItem().(*chain.Pr)
-			m.handler.GetPrsLinkedTo(selected, false)
-			chain, err := m.handler.GetPrsLinkedTo(selected, false)
+			selected := m.models[listView].(List).list.SelectedItem().(*Item)
+			m.handler.GetItemsLinkedTo(selected, false)
+			chain, err := m.handler.GetItemsLinkedTo(selected, false)
 			if err != nil {
 				m.err = err
 				return m, func() tea.Msg { return errMsg{err: err} }
