@@ -54,7 +54,7 @@ func (m Detail) View() string {
 			bodyStyle.Padding(0, 2).Render(m.item.Title()),
 			labelStyle.Render(m.item.Label()),
 		),
-		bodyStyle.Padding(1, 0).Render(m.item.Description()),
+		bodyStyle.Padding(1, 0).Render(m.item.Text()),
 		m.RenderChain(),
 	)
 }
@@ -64,7 +64,7 @@ func (m *Detail) RenderChain() string {
 	for i, item := range m.chain {
 		rows[i] = []string{
 			strconv.FormatUint(uint64(item.Id()), 10),
-			item.Description(),
+			item.Title(),
 			item.Label(),
 		}
 	}

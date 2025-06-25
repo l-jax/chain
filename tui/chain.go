@@ -32,8 +32,9 @@ func (h *chainAdaptor) ListItems(refresh bool) ([]*Item, error) {
 	for _, pr := range prs {
 		item := NewItem(
 			pr.Id(),
-			pr.Title(),
 			pr.Branch(),
+			pr.Title(),
+			pr.Body(),
 			pr.State().String(),
 			pr.LinkId(),
 		)
@@ -57,8 +58,9 @@ func (h *chainAdaptor) GetItemsLinkedTo(item *Item, refresh bool) ([]*Item, erro
 	for _, p := range prs {
 		items = append(items, NewItem(
 			p.Id(),
-			p.Title(),
 			p.Branch(),
+			p.Title(),
+			p.Body(),
 			p.State().String(),
 			p.LinkId(),
 		))
