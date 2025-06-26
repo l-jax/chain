@@ -29,6 +29,7 @@ type view uint
 const (
 	listView view = iota
 	detailView
+	tableView
 )
 
 type Model struct {
@@ -41,12 +42,13 @@ type Model struct {
 func InitModel() (tea.Model, error) {
 	m := &Model{
 		handler:  initChainAdaptor(),
-		models:   make([]tea.Model, 2),
+		models:   make([]tea.Model, 3),
 		err:      nil,
 		quitting: false,
 	}
 	m.models[listView] = NewList()
 	m.models[detailView] = NewDetail()
+	m.models[tableView] = NewTable()
 	return m, nil
 }
 
@@ -94,11 +96,16 @@ func (m Model) View() string {
 
 	list := m.models[listView].View()
 	detail := m.models[detailView].View()
+	table := m.models[tableView].View()
 
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
 		focussedStyle.Render(list),
-		unfocussedStyle.Render(detail),
+		lipgloss.JoinVertical(
+			lipgloss.Left,
+			unfocussedStyle.Render(detail),
+			unfocussedStyle.Render(table),
+		),
 	)
 }
 
