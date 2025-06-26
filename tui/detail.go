@@ -3,6 +3,7 @@ package tui
 import (
 	"strconv"
 
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
@@ -11,19 +12,38 @@ import (
 type Detail struct {
 	item     *Item
 	linked   []*Item
+	spinner  spinner.Model
 	quitting bool
 	err      error
 }
 
+func NewDetail() Detail {
+	s := spinner.New()
+	s.Spinner = spinner.Dot
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	return Detail{
+		spinner: s,
+	}
+}
+
 func (m Detail) Init() tea.Cmd {
-	return nil
+	return m.spinner.Tick
 }
 
 func (m Detail) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
+	case tea.WindowSizeMsg:
+		return m, m.spinner.Tick
+
 	case detailMsg:
 		m.item = msg.item
 		m.linked = msg.linked
+
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
 	}
 
 	return m, nil
@@ -39,7 +59,7 @@ func (m Detail) View() string {
 	}
 
 	if m.item == nil {
-		return "Loading..."
+		return m.spinner.View()
 	}
 
 	return lipgloss.JoinVertical(

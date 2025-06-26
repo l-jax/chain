@@ -46,8 +46,7 @@ func InitModel() (tea.Model, error) {
 		quitting: false,
 	}
 	m.models[listView] = NewList()
-	m.models[detailView] = Detail{}
-
+	m.models[detailView] = NewDetail()
 	return m, nil
 }
 
