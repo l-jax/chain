@@ -10,17 +10,9 @@ import (
 
 type Detail struct {
 	item     *Item
-	chain    []*Item
-	loaded   bool
+	linked   []*Item
 	quitting bool
 	err      error
-}
-
-func InitDetail(chain []*Item, item *Item) *Detail {
-	m := Detail{chain: chain, item: item}
-
-	m.loaded = true
-	return &m
 }
 
 func (m Detail) Init() tea.Cmd {
@@ -28,9 +20,13 @@ func (m Detail) Init() tea.Cmd {
 }
 
 func (m Detail) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case detailMsg:
+		m.item = msg.item
+		m.linked = msg.linked
+	}
 
-	var cmd tea.Cmd
-	return m, cmd
+	return m, nil
 }
 
 func (m Detail) View() string {
@@ -42,7 +38,7 @@ func (m Detail) View() string {
 		return "Error: " + m.err.Error()
 	}
 
-	if !m.loaded {
+	if m.item == nil {
 		return "Loading..."
 	}
 
@@ -60,8 +56,8 @@ func (m Detail) View() string {
 }
 
 func (m *Detail) RenderChain() string {
-	rows := make([][]string, len(m.chain))
-	for i, item := range m.chain {
+	rows := make([][]string, len(m.linked))
+	for i, item := range m.linked {
 		rows[i] = []string{
 			strconv.FormatUint(uint64(item.Id()), 10),
 			item.Title(),

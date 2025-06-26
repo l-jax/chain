@@ -11,6 +11,15 @@ var (
 	divisor    = 6
 )
 
+type listMsg struct {
+	items []*Item
+}
+
+type detailMsg struct {
+	item   *Item
+	linked []*Item
+}
+
 type errMsg struct {
 	err error
 }
@@ -25,7 +34,6 @@ const (
 type Model struct {
 	models   []tea.Model
 	handler  *chainAdaptor
-	loaded   bool
 	err      error
 	quitting bool
 }
@@ -33,54 +41,30 @@ type Model struct {
 func InitModel() (tea.Model, error) {
 	m := &Model{
 		handler:  initChainAdaptor(),
-		loaded:   false,
+		models:   make([]tea.Model, 2),
 		err:      nil,
 		quitting: false,
 	}
+	m.models[listView] = NewList()
+	m.models[detailView] = Detail{}
 
-	items, err := m.handler.ListItems(true)
-	if err != nil {
-		m.err = err
-		return nil, err
-	}
-
-	linkedItems, err := m.handler.GetItemsLinkedTo(items[0], true)
-	if err != nil {
-		m.err = err
-		return nil, err
-	}
-
-	m.models = make([]tea.Model, 2)
-	m.models[listView] = InitList(items)
-	m.models[detailView] = InitDetail(linkedItems, items[0])
 	return m, nil
 }
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	return m.loadList
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		windowSize = msg
-		if m.loaded {
-			break
-		}
-		for i := range m.models {
-			m.models[i].Update(msg)
-		}
-		m.loaded = true
+
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Enter):
-			selected := m.models[listView].(List).list.SelectedItem().(*Item)
-			linkedItems, err := m.handler.GetItemsLinkedTo(selected, false)
-			if err != nil {
-				m.err = err
-				return m, func() tea.Msg { return errMsg{err: err} }
-			}
-			m.models[detailView] = InitDetail(linkedItems, selected)
+			return m, m.loadDetail
+
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
 			return m, tea.Quit
@@ -89,6 +73,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmds []tea.Cmd
 	for i, model := range m.models {
+		if model == nil {
+			continue
+		}
 		var cmd tea.Cmd
 		m.models[i], cmd = model.Update(msg)
 		cmds = append(cmds, cmd)
@@ -106,10 +93,6 @@ func (m Model) View() string {
 		return "Error: " + m.err.Error()
 	}
 
-	if !m.loaded {
-		return "Loading..."
-	}
-
 	list := m.models[listView].View()
 	detail := m.models[detailView].View()
 
@@ -118,4 +101,26 @@ func (m Model) View() string {
 		focussedStyle.Render(list),
 		unfocussedStyle.Render(detail),
 	)
+}
+
+func (m Model) loadList() tea.Msg {
+	items, err := m.handler.ListItems(true)
+	if err != nil {
+		return errMsg{err: err}
+	}
+	return listMsg{items: items}
+}
+
+func (m Model) loadDetail() tea.Msg {
+	item := m.models[listView].(List).list.SelectedItem().(*Item)
+
+	if item == nil {
+		return nil
+	}
+
+	linkedItems, err := m.handler.GetItemsLinkedTo(item, true)
+	if err != nil {
+		return errMsg{err: err}
+	}
+	return detailMsg{item: item, linked: linkedItems}
 }

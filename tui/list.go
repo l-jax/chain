@@ -12,19 +12,13 @@ type List struct {
 	quitting bool
 }
 
-func InitList(items []*Item) tea.Model {
+func NewList() tea.Model {
 	m := List{list: list.New([]list.Item{}, list.NewDefaultDelegate(), windowSize.Width/divisor, windowSize.Height-divisor)}
 
 	m.list.SetShowHelp(false)
 	m.list.Title = "pull requests"
 	m.list.Styles.Title = titleStyle
 	m.list.Styles.NoItems = bodyStyle
-
-	listItems := make([]list.Item, len(items))
-	for i, pr := range items {
-		listItems[i] = pr
-	}
-	m.list.SetItems(listItems)
 
 	m.loaded = true
 	return &m
@@ -38,7 +32,15 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetSize(msg.Width/divisor, msg.Height-divisor)
+
+	case listMsg:
+		listItems := make([]list.Item, len(msg.items))
+		for i, pr := range msg.items {
+			listItems[i] = pr
+		}
+		m.list.SetItems(listItems)
 	}
+
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
