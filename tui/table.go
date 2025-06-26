@@ -4,13 +4,14 @@ import (
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
 )
 
 type Table struct {
 	items    []*Item
+	table    table.Model
 	spinner  spinner.Model
 	quitting bool
 	err      error
@@ -60,12 +61,19 @@ func (m Table) View() string {
 		return m.spinner.View()
 	}
 
-	return m.RenderTable()
+	m.SetItems(m.items)
+
+	return m.table.View()
 }
 
-func (m *Table) RenderTable() string {
-	rows := make([][]string, len(m.items))
-	for i, item := range m.items {
+func (m *Table) SetItems(items []*Item) {
+	columns := []table.Column{
+		{Title: "ID", Width: 5},
+		{Title: "Branch", Width: 20},
+		{Title: "State", Width: 10},
+	}
+	rows := make([]table.Row, len(items))
+	for i, item := range items {
 		rows[i] = []string{
 			strconv.FormatUint(uint64(item.Id()), 10),
 			item.Title(),
@@ -73,21 +81,24 @@ func (m *Table) RenderTable() string {
 		}
 	}
 
-	t := table.New().
-		Border(lipgloss.NormalBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(purple)).
-		StyleFunc(func(row, col int) lipgloss.Style {
-			switch {
-			case row == table.HeaderRow:
-				return headerStyle
-			case row%2 == 0:
-				return evenRowStyle
-			default:
-				return oddRowStyle
-			}
-		}).
-		Headers("id", "branch", "state").
-		Rows(rows...)
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(7),
+	)
 
-	return t.Render()
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+	t.SetStyles(s)
+
+	m.table = t
 }
