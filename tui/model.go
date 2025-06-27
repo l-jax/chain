@@ -107,6 +107,10 @@ func (m Model) loadList() tea.Msg {
 }
 
 func (m Model) loadChain() tea.Msg {
+	if m.models[listView].(listModel).list.SelectedItem() == nil {
+		return nil
+	}
+
 	item := m.models[listView].(listModel).list.SelectedItem().(*pr)
 
 	if item == nil {
@@ -121,6 +125,10 @@ func (m Model) loadChain() tea.Msg {
 }
 
 func (m Model) loadDetail() tea.Msg {
+	if m.models[listView].(listModel).list.SelectedItem() == nil {
+		return nil
+	}
+
 	item := m.models[listView].(listModel).list.SelectedItem().(*pr)
 
 	if item == nil {
