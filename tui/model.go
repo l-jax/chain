@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -17,6 +18,7 @@ const (
 type Model struct {
 	models   []tea.Model
 	handler  *chainAdaptor
+	help     help.Model
 	err      error
 	quitting bool
 }
@@ -25,6 +27,7 @@ func InitModel() (tea.Model, error) {
 	m := &Model{
 		handler: initChainAdaptor(),
 		models:  make([]tea.Model, 3),
+		help:    help.New(),
 	}
 	m.models[listView] = NewList()
 	m.models[detailView] = NewDetail()
@@ -78,15 +81,20 @@ func (m Model) View() string {
 	list := m.models[listView].View()
 	detail := m.models[detailView].View()
 	table := m.models[tableView].View()
+	help := m.help.View(keys)
 
-	return lipgloss.JoinHorizontal(
+	return lipgloss.JoinVertical(
 		lipgloss.Left,
-		focussedStyle.Render(list),
-		lipgloss.JoinVertical(
+		lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			unfocussedStyle.Render(detail),
-			unfocussedStyle.Render(table),
+			focussedStyle.Render(list),
+			lipgloss.JoinVertical(
+				lipgloss.Left,
+				unfocussedStyle.Render(detail),
+				unfocussedStyle.Render(table),
+			),
 		),
+		helpStyle.Render(help),
 	)
 }
 

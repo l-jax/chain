@@ -35,6 +35,8 @@ var (
 			Padding(0, 1)
 	bodyStyle = lipgloss.NewStyle().
 			Foreground(grey)
+	helpStyle = lipgloss.NewStyle().
+			Foreground(darkGrey)
 )
 
 /* TABLE */
