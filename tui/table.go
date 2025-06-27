@@ -21,8 +21,21 @@ func NewTable() Table {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+
+	t := table.New(
+		table.WithFocused(false),
+		table.WithHeight(5),
+	)
+
+	style := table.DefaultStyles()
+	style.Selected = tableSelectedStyle
+	style.Header = tableHeaderStyle
+
+	t.SetStyles(style)
+
 	return Table{
 		spinner: s,
+		table:   t,
 	}
 }
 
@@ -38,14 +51,18 @@ func (m Table) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case detailMsg:
 		m.items = msg.linked
+		m.table.Focus()
 
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
-	}
 
-	return m, nil
+	}
+	var cmd tea.Cmd
+	m.table, cmd = m.table.Update(msg)
+
+	return m, cmd
 }
 
 func (m Table) View() string {
@@ -80,25 +97,6 @@ func (m *Table) SetItems(items []*Item) {
 			item.Label(),
 		}
 	}
-
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(7),
-	)
-
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
-	t.SetStyles(s)
-
-	m.table = t
+	m.table.SetColumns(columns)
+	m.table.SetRows(rows)
 }

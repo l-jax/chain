@@ -1,6 +1,8 @@
 package tui
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+)
 
 /* COLORS */
 var (
@@ -37,8 +39,13 @@ var (
 
 /* TABLE */
 var (
-	headerStyle  = lipgloss.NewStyle().Foreground(purple).Bold(true).Align(lipgloss.Center)
-	cellStyle    = lipgloss.NewStyle().Padding(0, 1)
-	oddRowStyle  = cellStyle.Foreground(darkGrey)
-	evenRowStyle = cellStyle.Foreground(grey)
+	tableHeaderStyle = lipgloss.NewStyle().
+				BorderStyle(lipgloss.NormalBorder()).
+				BorderForeground(lipgloss.Color("240")).
+				BorderBottom(true).
+				Bold(false)
+	tableSelectedStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("229")).
+				Background(lipgloss.Color("57")).
+				Bold(false)
 )
