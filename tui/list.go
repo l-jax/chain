@@ -13,11 +13,17 @@ type listModel struct {
 }
 
 func newList() tea.Model {
-	m := listModel{list: list.New([]list.Item{}, list.NewDefaultDelegate(), 18, 20)}
+	d := list.NewDefaultDelegate()
+	d.Styles.NormalTitle = bodyStyle.Width(16)
+	d.Styles.SelectedTitle = titleStyle.Width(16)
+	d.Styles.NormalDesc = bodyStyle
+	d.Styles.SelectedDesc = bodyStyle
+
+	m := listModel{list: list.New([]list.Item{}, d, 18, 20)}
 
 	m.list.SetShowHelp(false)
 	m.list.Title = "open"
-	m.list.Styles.Title = titleStyle
+	m.list.Styles.Title = titleStyle.Width(14)
 	m.list.Styles.NoItems = bodyStyle
 
 	m.loaded = true
@@ -60,7 +66,7 @@ func (m listModel) View() string {
 }
 
 func (m listModel) SelectedId() uint {
-	if item, ok := m.list.SelectedItem().(*pr); ok {
+	if item, ok := m.list.SelectedItem().(*Item); ok {
 		return item.Id()
 	}
 	return 0

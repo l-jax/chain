@@ -17,7 +17,7 @@ const (
 
 type Model struct {
 	models   []tea.Model
-	adaptor  *chainAdaptor
+	adaptor  *adaptor
 	help     help.Model
 	err      error
 	quitting bool
@@ -111,7 +111,7 @@ func (m Model) loadChain() tea.Msg {
 		return nil
 	}
 
-	item := m.models[listView].(listModel).list.SelectedItem().(*pr)
+	item := m.models[listView].(listModel).list.SelectedItem().(*Item)
 
 	if item == nil {
 		return nil
@@ -129,7 +129,7 @@ func (m Model) loadDetail() tea.Msg {
 		return nil
 	}
 
-	item := m.models[listView].(listModel).list.SelectedItem().(*pr)
+	item := m.models[listView].(listModel).list.SelectedItem().(*Item)
 
 	if item == nil {
 		return nil

@@ -10,7 +10,7 @@ import (
 )
 
 type chainModel struct {
-	items   []*pr
+	items   []*Item
 	table   table.Model
 	spinner spinner.Model
 	loading bool
@@ -88,7 +88,7 @@ func (m chainModel) View() string {
 	return m.table.View()
 }
 
-func (m *chainModel) SetItems(items []*pr) {
+func (m *chainModel) SetItems(items []*Item) {
 	rows := make([]table.Row, len(items))
 	for i, item := range items {
 		rows[i] = []string{

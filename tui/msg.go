@@ -1,15 +1,15 @@
 package tui
 
 type listMsg struct {
-	items []*pr
+	items []*Item
 }
 
 type detailMsg struct {
-	item *pr
+	item *Item
 }
 
 type chainMsg struct {
-	items []*pr
+	items []*Item
 }
 
 type errMsg struct {

@@ -7,7 +7,7 @@ import (
 )
 
 type detailModel struct {
-	item     *pr
+	item     *Item
 	viewport *viewport.Model
 	quitting bool
 	err      error

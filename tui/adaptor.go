@@ -2,21 +2,21 @@ package tui
 
 import "chain/chain"
 
-type chainAdaptor struct {
+type adaptor struct {
 	orchestrator *chain.Orchestrator
-	items        []*pr
-	linkedItems  map[uint][]*pr
+	items        []*Item
+	linkedItems  map[uint][]*Item
 }
 
-func newAdaptor() *chainAdaptor {
-	return &chainAdaptor{
+func newAdaptor() *adaptor {
+	return &adaptor{
 		orchestrator: chain.InitOrchestrator(),
-		items:        []*pr{},
-		linkedItems:  make(map[uint][]*pr),
+		items:        []*Item{},
+		linkedItems:  make(map[uint][]*Item),
 	}
 }
 
-func (h *chainAdaptor) ListItems(refresh bool) ([]*pr, error) {
+func (h *adaptor) ListItems(refresh bool) ([]*Item, error) {
 	if !refresh && len(h.items) > 0 {
 		return h.items, nil
 	}
@@ -26,9 +26,9 @@ func (h *chainAdaptor) ListItems(refresh bool) ([]*pr, error) {
 		return nil, err
 	}
 
-	h.items = make([]*pr, 0, len(prs))
+	h.items = make([]*Item, 0, len(prs))
 	for _, pr := range prs {
-		item := newPr(
+		item := newItem(
 			pr.Id(),
 			pr.Branch(),
 			pr.Title(),
@@ -42,7 +42,7 @@ func (h *chainAdaptor) ListItems(refresh bool) ([]*pr, error) {
 	return h.items, nil
 }
 
-func (h *chainAdaptor) GetItemsLinkedTo(item *pr, refresh bool) ([]*pr, error) {
+func (h *adaptor) GetItemsLinkedTo(item *Item, refresh bool) ([]*Item, error) {
 	if !refresh && h.linkedItems[item.Id()] != nil {
 		return h.linkedItems[item.Id()], nil
 	}
@@ -52,9 +52,9 @@ func (h *chainAdaptor) GetItemsLinkedTo(item *pr, refresh bool) ([]*pr, error) {
 		return nil, err
 	}
 
-	items := make([]*pr, 0, len(prs))
+	items := make([]*Item, 0, len(prs))
 	for _, p := range prs {
-		items = append(items, newPr(
+		items = append(items, newItem(
 			p.Id(),
 			p.Branch(),
 			p.Title(),
