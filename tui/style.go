@@ -46,12 +46,3 @@ var (
 	helpStyle = lipgloss.NewStyle().
 			Foreground(darkGrey)
 )
-
-/* TABLE */
-var (
-	tableHeaderStyle = lipgloss.NewStyle().
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(grey).
-		BorderBottom(true).
-		Bold(false)
-)
