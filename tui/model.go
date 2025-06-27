@@ -101,8 +101,8 @@ func (m Model) View() string {
 		focussedStyle.Render(list),
 		lipgloss.JoinVertical(
 			lipgloss.Left,
-			unfocussedStyle.Render(table),
 			unfocussedStyle.Render(detail),
+			unfocussedStyle.Render(table),
 		),
 	)
 }

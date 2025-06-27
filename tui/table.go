@@ -25,12 +25,13 @@ func NewTable() Table {
 	columns := []table.Column{
 		{Title: "ID", Width: 5},
 		{Title: "branch", Width: 20},
-		{Title: "state", Width: 10},
+		{Title: "state", Width: 7},
 	}
 
 	t := table.New(
 		table.WithFocused(false),
 		table.WithHeight(5),
+		table.WithWidth(40),
 		table.WithColumns(columns),
 	)
 
@@ -86,7 +87,6 @@ func (m Table) View() string {
 	}
 
 	m.SetItems(m.items)
-
 	return m.table.View()
 }
 

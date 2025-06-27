@@ -41,11 +41,11 @@ var (
 var (
 	tableHeaderStyle = lipgloss.NewStyle().
 				BorderStyle(lipgloss.NormalBorder()).
-				BorderForeground(lipgloss.Color("240")).
+				BorderForeground(grey).
 				BorderBottom(true).
 				Bold(false)
 	tableSelectedStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("229")).
-				Background(lipgloss.Color("57")).
+				Foreground(white).
+				Background(purple).
 				Bold(false)
 )

@@ -13,7 +13,7 @@ type List struct {
 }
 
 func NewList() tea.Model {
-	m := List{list: list.New([]list.Item{}, list.NewDefaultDelegate(), windowSize.Width/divisor, windowSize.Height-divisor)}
+	m := List{list: list.New([]list.Item{}, list.NewDefaultDelegate(), 20, 10)}
 
 	m.list.SetShowHelp(false)
 	m.list.Title = "pull requests"
