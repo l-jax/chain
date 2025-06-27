@@ -14,7 +14,7 @@ type Detail struct {
 }
 
 func NewDetail() Detail {
-	v := viewport.New(40, 9)
+	v := viewport.New(40, 8)
 	return Detail{
 		viewport: &v,
 	}
@@ -47,15 +47,14 @@ func (m Detail) View() string {
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		m.headerView(),
+		"",
 		m.viewport.View(),
 	)
 }
 
 func (m Detail) headerView() string {
 	if m.item == nil {
-		return "No item selected"
+		return "..."
 	}
-
-	title := titleStyle.Render(m.item.Title())
-	return lipgloss.JoinHorizontal(lipgloss.Center, title)
+	return titleStyle.Render(m.item.Title())
 }
