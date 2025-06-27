@@ -56,5 +56,9 @@ func (m detailModel) headerView() string {
 	if m.item == nil {
 		return "..."
 	}
-	return titleStyle.Render(m.item.Title())
+	return lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		titleStyle.Render(m.item.Title()),
+		labelStyle.Background(labelColor[m.item.Label()]).Render(m.item.Label()),
+	)
 }

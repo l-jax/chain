@@ -23,7 +23,7 @@ func newChain() chainModel {
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
 	columns := []table.Column{
-		{Title: "ID", Width: 5},
+		{Title: "it", Width: 5},
 		{Title: "branch", Width: 20},
 		{Title: "state", Width: 7},
 	}
@@ -36,7 +36,6 @@ func newChain() chainModel {
 	)
 
 	style := table.DefaultStyles()
-	style.Selected = tableSelectedStyle
 	style.Header = tableHeaderStyle
 
 	t.SetStyles(style)
