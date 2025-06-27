@@ -57,8 +57,8 @@ func (m Table) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		return m, m.spinner.Tick
 
-	case detailMsg:
-		m.items = msg.linked
+	case tableMsg:
+		m.items = msg.items
 		m.table.Focus()
 
 	case spinner.TickMsg:

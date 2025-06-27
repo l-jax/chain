@@ -14,7 +14,7 @@ type Detail struct {
 }
 
 func NewDetail() Detail {
-	v := viewport.New(40, 10)
+	v := viewport.New(40, 9)
 	return Detail{
 		viewport: &v,
 	}

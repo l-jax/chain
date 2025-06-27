@@ -13,7 +13,7 @@ type List struct {
 }
 
 func NewList() tea.Model {
-	m := List{list: list.New([]list.Item{}, list.NewDefaultDelegate(), 20, 10)}
+	m := List{list: list.New([]list.Item{}, list.NewDefaultDelegate(), 18, 20)}
 
 	m.list.SetShowHelp(false)
 	m.list.Title = "pull requests"
@@ -30,9 +30,6 @@ func (m List) Init() tea.Cmd {
 
 func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.list.SetSize(msg.Width/divisor, msg.Height-divisor)
-
 	case listMsg:
 		listItems := make([]list.Item, len(msg.items))
 		for i, pr := range msg.items {

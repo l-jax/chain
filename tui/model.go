@@ -6,24 +6,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	windowSize tea.WindowSizeMsg
-	divisor    = 6
-)
-
-type listMsg struct {
-	items []*Item
-}
-
-type detailMsg struct {
-	item   *Item
-	linked []*Item
-}
-
-type errMsg struct {
-	err error
-}
-
 type view uint
 
 const (
@@ -56,13 +38,14 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		windowSize = msg
 
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Enter):
-			return m, m.loadDetail
+			return m, tea.Batch(
+				m.loadTable,
+				m.loadDetail,
+			)
 
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
@@ -115,6 +98,20 @@ func (m Model) loadList() tea.Msg {
 	return listMsg{items: items}
 }
 
+func (m Model) loadTable() tea.Msg {
+	item := m.models[listView].(List).list.SelectedItem().(*Item)
+
+	if item == nil {
+		return nil
+	}
+
+	items, err := m.handler.GetItemsLinkedTo(item, true)
+	if err != nil {
+		return errMsg{err: err}
+	}
+	return tableMsg{items: items}
+}
+
 func (m Model) loadDetail() tea.Msg {
 	item := m.models[listView].(List).list.SelectedItem().(*Item)
 
@@ -122,9 +119,5 @@ func (m Model) loadDetail() tea.Msg {
 		return nil
 	}
 
-	linkedItems, err := m.handler.GetItemsLinkedTo(item, true)
-	if err != nil {
-		return errMsg{err: err}
-	}
-	return detailMsg{item: item, linked: linkedItems}
+	return detailMsg{item: item}
 }
