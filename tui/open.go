@@ -5,18 +5,18 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type List struct {
+type listModel struct {
 	list     list.Model
 	err      error
 	loaded   bool
 	quitting bool
 }
 
-func NewList() tea.Model {
-	m := List{list: list.New([]list.Item{}, list.NewDefaultDelegate(), 18, 20)}
+func newList() tea.Model {
+	m := listModel{list: list.New([]list.Item{}, list.NewDefaultDelegate(), 18, 20)}
 
 	m.list.SetShowHelp(false)
-	m.list.Title = "pull requests"
+	m.list.Title = "open"
 	m.list.Styles.Title = titleStyle
 	m.list.Styles.NoItems = bodyStyle
 
@@ -24,11 +24,11 @@ func NewList() tea.Model {
 	return &m
 }
 
-func (m List) Init() tea.Cmd {
+func (m listModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case listMsg:
 		listItems := make([]list.Item, len(msg.items))
@@ -43,7 +43,7 @@ func (m List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m List) View() string {
+func (m listModel) View() string {
 	if m.quitting {
 		return ""
 	}
@@ -59,8 +59,8 @@ func (m List) View() string {
 	return m.list.View()
 }
 
-func (m List) SelectedId() uint {
-	if item, ok := m.list.SelectedItem().(*Item); ok {
+func (m listModel) SelectedId() uint {
+	if item, ok := m.list.SelectedItem().(*pr); ok {
 		return item.Id()
 	}
 	return 0

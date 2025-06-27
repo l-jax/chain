@@ -12,12 +12,12 @@ type view uint
 const (
 	listView view = iota
 	detailView
-	tableView
+	chainView
 )
 
 type Model struct {
 	models   []tea.Model
-	handler  *chainAdaptor
+	adaptor  *chainAdaptor
 	help     help.Model
 	err      error
 	quitting bool
@@ -25,13 +25,13 @@ type Model struct {
 
 func InitModel() (tea.Model, error) {
 	m := &Model{
-		handler: initChainAdaptor(),
+		adaptor: newAdaptor(),
 		models:  make([]tea.Model, 3),
 		help:    help.New(),
 	}
-	m.models[listView] = NewList()
-	m.models[detailView] = NewDetail()
-	m.models[tableView] = NewTable()
+	m.models[listView] = newList()
+	m.models[detailView] = newDetail()
+	m.models[chainView] = newChain()
 	return m, nil
 }
 
@@ -46,7 +46,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, keys.Enter):
 			return m, tea.Batch(
-				m.loadTable,
+				m.loadChain,
 				m.loadDetail,
 			)
 
@@ -80,7 +80,7 @@ func (m Model) View() string {
 
 	list := m.models[listView].View()
 	detail := m.models[detailView].View()
-	table := m.models[tableView].View()
+	chain := m.models[chainView].View()
 	help := m.help.View(keys)
 
 	return lipgloss.JoinVertical(
@@ -91,7 +91,7 @@ func (m Model) View() string {
 			lipgloss.JoinVertical(
 				lipgloss.Left,
 				unfocussedStyle.Render(detail),
-				unfocussedStyle.Render(table),
+				unfocussedStyle.Render(chain),
 			),
 		),
 		helpStyle.Render(help),
@@ -99,29 +99,29 @@ func (m Model) View() string {
 }
 
 func (m Model) loadList() tea.Msg {
-	items, err := m.handler.ListItems(true)
+	items, err := m.adaptor.ListItems(true)
 	if err != nil {
 		return errMsg{err: err}
 	}
 	return listMsg{items: items}
 }
 
-func (m Model) loadTable() tea.Msg {
-	item := m.models[listView].(List).list.SelectedItem().(*Item)
+func (m Model) loadChain() tea.Msg {
+	item := m.models[listView].(listModel).list.SelectedItem().(*pr)
 
 	if item == nil {
 		return nil
 	}
 
-	items, err := m.handler.GetItemsLinkedTo(item, true)
+	items, err := m.adaptor.GetItemsLinkedTo(item, true)
 	if err != nil {
 		return errMsg{err: err}
 	}
-	return tableMsg{items: items}
+	return chainMsg{items: items}
 }
 
 func (m Model) loadDetail() tea.Msg {
-	item := m.models[listView].(List).list.SelectedItem().(*Item)
+	item := m.models[listView].(listModel).list.SelectedItem().(*pr)
 
 	if item == nil {
 		return nil

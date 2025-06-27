@@ -6,25 +6,25 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type Detail struct {
-	item     *Item
+type detailModel struct {
+	item     *pr
 	viewport *viewport.Model
 	quitting bool
 	err      error
 }
 
-func NewDetail() Detail {
+func newDetail() detailModel {
 	v := viewport.New(40, 8)
-	return Detail{
+	return detailModel{
 		viewport: &v,
 	}
 }
 
-func (m Detail) Init() tea.Cmd {
+func (m detailModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m Detail) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m detailModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case detailMsg:
@@ -35,7 +35,7 @@ func (m Detail) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Detail) View() string {
+func (m detailModel) View() string {
 	if m.quitting {
 		return ""
 	}
@@ -52,7 +52,7 @@ func (m Detail) View() string {
 	)
 }
 
-func (m Detail) headerView() string {
+func (m detailModel) headerView() string {
 	if m.item == nil {
 		return "..."
 	}
