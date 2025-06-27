@@ -33,16 +33,23 @@ var (
 
 /* TEXT */
 var (
-	titleStyle = lipgloss.NewStyle().
+	headerStyle = lipgloss.NewStyle().
 			Background(grey).
 			Foreground(white).
+			Align(lipgloss.Center).
 			Padding(0, 1)
 	labelStyle = lipgloss.NewStyle().
 			Background(pink).
 			Foreground(white).
 			Padding(0, 1)
+	titleStyle = lipgloss.NewStyle().
+			Foreground(darkGrey).
+			Bold(true)
+	selectedStyle = lipgloss.NewStyle().
+			Foreground(white).
+			Bold(true)
 	bodyStyle = lipgloss.NewStyle().
-			Foreground(grey)
+			Foreground(darkGrey)
 	helpStyle = lipgloss.NewStyle().
 			Foreground(darkGrey)
 )

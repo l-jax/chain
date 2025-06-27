@@ -14,8 +14,8 @@ type listModel struct {
 
 func newList() tea.Model {
 	d := list.NewDefaultDelegate()
-	d.Styles.NormalTitle = bodyStyle.Width(16)
-	d.Styles.SelectedTitle = titleStyle.Width(16)
+	d.Styles.NormalTitle = titleStyle.Width(16)
+	d.Styles.SelectedTitle = selectedStyle.Width(16)
 	d.Styles.NormalDesc = bodyStyle
 	d.Styles.SelectedDesc = bodyStyle
 
@@ -23,7 +23,7 @@ func newList() tea.Model {
 
 	m.list.SetShowHelp(false)
 	m.list.Title = "open"
-	m.list.Styles.Title = titleStyle.Width(14)
+	m.list.Styles.Title = headerStyle.Width(14)
 	m.list.Styles.NoItems = bodyStyle
 
 	m.loaded = true
