@@ -22,9 +22,16 @@ func NewTable() Table {
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
+	columns := []table.Column{
+		{Title: "ID", Width: 5},
+		{Title: "branch", Width: 20},
+		{Title: "state", Width: 10},
+	}
+
 	t := table.New(
 		table.WithFocused(false),
 		table.WithHeight(5),
+		table.WithColumns(columns),
 	)
 
 	style := table.DefaultStyles()
@@ -75,7 +82,7 @@ func (m Table) View() string {
 	}
 
 	if m.items == nil {
-		return m.spinner.View()
+		return m.table.View()
 	}
 
 	m.SetItems(m.items)
@@ -84,11 +91,6 @@ func (m Table) View() string {
 }
 
 func (m *Table) SetItems(items []*Item) {
-	columns := []table.Column{
-		{Title: "ID", Width: 5},
-		{Title: "Branch", Width: 20},
-		{Title: "State", Width: 10},
-	}
 	rows := make([]table.Row, len(items))
 	for i, item := range items {
 		rows[i] = []string{
@@ -97,6 +99,5 @@ func (m *Table) SetItems(items []*Item) {
 			item.Label(),
 		}
 	}
-	m.table.SetColumns(columns)
 	m.table.SetRows(rows)
 }

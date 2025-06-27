@@ -34,7 +34,6 @@ const (
 
 type Model struct {
 	models   []tea.Model
-	focussed view
 	handler  *chainAdaptor
 	err      error
 	quitting bool
@@ -42,9 +41,8 @@ type Model struct {
 
 func InitModel() (tea.Model, error) {
 	m := &Model{
-		handler:  initChainAdaptor(),
-		models:   make([]tea.Model, 3),
-		focussed: listView,
+		handler: initChainAdaptor(),
+		models:  make([]tea.Model, 3),
 	}
 	m.models[listView] = NewList()
 	m.models[detailView] = NewDetail()
@@ -64,11 +62,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Enter):
-			m.focussed = tableView
 			return m, m.loadDetail
-
-		case key.Matches(msg, keys.Back):
-			m.focussed = listView
 
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
@@ -102,23 +96,12 @@ func (m Model) View() string {
 	detail := m.models[detailView].View()
 	table := m.models[tableView].View()
 
-	if m.focussed == listView {
-		return lipgloss.JoinHorizontal(
-			lipgloss.Left,
-			focussedStyle.Render(list),
-			lipgloss.JoinVertical(
-				lipgloss.Left,
-				unfocussedStyle.Render(table),
-				unfocussedStyle.Render(detail),
-			),
-		)
-	}
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		unfocussedStyle.Render(list),
+		focussedStyle.Render(list),
 		lipgloss.JoinVertical(
 			lipgloss.Left,
-			focussedStyle.Render(table),
+			unfocussedStyle.Render(table),
 			unfocussedStyle.Render(detail),
 		),
 	)
