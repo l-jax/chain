@@ -34,7 +34,8 @@ func (m detailModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case detailMsg:
 		m.item = msg.item
-		m.viewport.SetContent(msg.item.Text())
+		str := lipgloss.NewStyle().Width(detailWidth - 2).Render(msg.item.Text())
+		m.viewport.SetContent(str)
 	}
 
 	return m, nil
