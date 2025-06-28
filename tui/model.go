@@ -17,6 +17,7 @@ const (
 
 type Model struct {
 	models   []tea.Model
+	focussed view
 	adaptor  *adaptor
 	help     help.Model
 	err      error
@@ -32,6 +33,7 @@ func InitModel() (tea.Model, error) {
 	m.models[listView] = newList()
 	m.models[detailView] = newDetail()
 	m.models[tableView] = newTable()
+	m.focussed = listView
 	return m, nil
 }
 
@@ -45,10 +47,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Enter):
-			return m, tea.Batch(
-				m.loadTable,
-				m.loadDetail,
-			)
+			if m.focussed == listView {
+				m.focussed = tableView
+				return m, tea.Batch(
+					m.loadTable,
+					m.loadDetail,
+				)
+			}
+		case key.Matches(msg, keys.Back):
+			if m.focussed == tableView {
+				m.focussed = listView
+				return m, func() tea.Msg {
+					return resetMsg{}
+				}
+			}
 
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
@@ -83,15 +95,25 @@ func (m Model) View() string {
 	table := m.models[tableView].View()
 	help := m.help.View(keys)
 
+	if m.focussed == listView {
+		list = focussedStyle.Render(list)
+		detail = unfocussedStyle.Render(detail)
+		table = unfocussedStyle.Render(table)
+	} else {
+		list = unfocussedStyle.Render(list)
+		detail = unfocussedStyle.Render(detail)
+		table = focussedStyle.Render(table)
+	}
+
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			focussedStyle.Render(list),
+			list,
 			lipgloss.JoinVertical(
 				lipgloss.Left,
-				unfocussedStyle.Render(detail),
-				unfocussedStyle.Render(table),
+				detail,
+				table,
 			),
 		),
 		helpStyle.Render(help),

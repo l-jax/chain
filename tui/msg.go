@@ -1,5 +1,7 @@
 package tui
 
+type resetMsg struct{}
+
 type listMsg struct {
 	items []*Item
 }

@@ -72,6 +72,11 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.items = msg.items
 		m.SetItems(m.items)
 		m.loading = false
+		m.table.Focus()
+
+	case resetMsg:
+		m.table.SetCursor(0)
+		m.table.Blur()
 
 	case spinner.TickMsg:
 		var cmd tea.Cmd

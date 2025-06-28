@@ -9,6 +9,7 @@ type listModel struct {
 	list     list.Model
 	err      error
 	loaded   bool
+	focussed bool
 	quitting bool
 }
 
@@ -42,10 +43,19 @@ func (m listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			listItems[i] = pr
 		}
 		m.list.SetItems(listItems)
+		m.focussed = true
+
+	case tableMsg:
+		m.focussed = false
+
+	case resetMsg:
+		m.focussed = true
 	}
 
 	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
+	if m.focussed {
+		m.list, cmd = m.list.Update(msg)
+	}
 	return m, cmd
 }
 
