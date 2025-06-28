@@ -10,7 +10,6 @@ import (
 
 const (
 	releasedLabel   = "RELEASED"
-	blockedLabel    = "DO NOT MERGE"
 	linkedPrPattern = `(?i)do not merge until #(\d+)`
 )
 
@@ -33,10 +32,9 @@ func mapPr(pr *github.PullRequest) (*Pr, error) {
 
 func mapState(state github.State, labels []string) (state, error) {
 	switch state {
+	case github.StateDraft:
+		return draft, nil
 	case github.StateOpen:
-		if labelsContains(labels, blockedLabel) {
-			return blocked, nil
-		}
 		return open, nil
 	case github.StateClosed:
 		return closed, nil

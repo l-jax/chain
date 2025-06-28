@@ -21,7 +21,7 @@ func TestMapPr(t *testing.T) {
 		"do not merge until #42 is released",
 		41,
 		42,
-		blocked,
+		open,
 	)
 
 	got, err := mapPr(pr)
@@ -41,8 +41,8 @@ func TestMapState(t *testing.T) {
 		labels []string
 		want   state
 	}{
-		{"open without blocked label", github.StateOpen, []string{}, open},
-		{"open with blocked label", github.StateOpen, []string{blockedLabel}, blocked},
+		{"draft", github.StateDraft, []string{}, draft},
+		{"open", github.StateOpen, []string{}, open},
 		{"closed", github.StateClosed, []string{}, closed},
 		{"merged without released label", github.StateMerged, []string{}, merged},
 		{"merged with released label", github.StateMerged, []string{releasedLabel}, released},

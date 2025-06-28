@@ -30,7 +30,7 @@ func (p Pr) Body() string   { return p.body }
 type state uint
 
 const (
-	blocked state = iota
+	draft state = iota
 	open
 	merged
 	released
@@ -39,10 +39,10 @@ const (
 
 func (s state) String() string {
 	switch s {
+	case state(draft):
+		return "draft"
 	case state(open):
 		return "open"
-	case state(blocked):
-		return "blocked"
 	case state(merged):
 		return "merged"
 	case state(released):

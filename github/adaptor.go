@@ -56,6 +56,8 @@ func mapPr(pr *gitHubPr) (*PullRequest, error) {
 
 func mapState(state string) (State, error) {
 	switch state {
+	case "DRAFT":
+		return StateDraft, nil
 	case "OPEN":
 		return StateOpen, nil
 	case "CLOSED":

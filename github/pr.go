@@ -30,12 +30,14 @@ func (p PullRequest) Number() uint     { return p.number }
 type State uint
 
 const (
-	StateOpen State = iota
+	StateDraft State = iota
+	StateOpen
 	StateMerged
 	StateClosed
 )
 
 var stateName = map[State]string{
+	StateDraft:  "draft",
 	StateOpen:   "open",
 	StateMerged: "merged",
 	StateClosed: "closed",
