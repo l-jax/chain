@@ -61,9 +61,3 @@ var (
 	subtitleStyle = lipgloss.NewStyle().
 			Foreground(lightGrey)
 )
-
-/* SPINNER */
-var (
-	spinnerStyle = lipgloss.NewStyle().
-		Foreground(pink)
-)

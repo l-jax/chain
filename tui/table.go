@@ -3,7 +3,6 @@ package tui
 import (
 	"strconv"
 
-	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -17,15 +16,11 @@ const (
 type tableModel struct {
 	items   []*Item
 	table   table.Model
-	spinner spinner.Model
 	loading bool
 	err     error
 }
 
 func newTable() tableModel {
-	s := spinner.New(spinner.WithSpinner(spinner.Ellipsis))
-	s.Style = spinnerStyle
-
 	columns := []table.Column{
 		{Title: "id", Width: 5},
 		{Title: "branch", Width: 20},
@@ -52,8 +47,7 @@ func newTable() tableModel {
 	t.SetStyles(style)
 
 	return tableModel{
-		spinner: s,
-		table:   t,
+		table: t,
 	}
 }
 
@@ -67,7 +61,6 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tableLoadMsg:
 		m.loading = true
-		return m, m.spinner.Tick
 
 	case tableMsg:
 		m.items = msg.items
@@ -76,13 +69,7 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.table.Focus()
 
 	case resetMsg:
-		m.table.SetCursor(0)
 		m.table.Blur()
-
-	case spinner.TickMsg:
-		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
 	}
 
 	var cmds []tea.Cmd
@@ -108,7 +95,7 @@ func (m tableModel) View() string {
 
 	if m.loading {
 		m.table.SetRows([]table.Row{
-			[]string{"", m.spinner.View(), ""},
+			{"?", "?", "?"},
 		})
 		return m.table.View()
 	}
