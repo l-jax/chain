@@ -56,8 +56,8 @@ func (h *adaptor) GetItemsLinkedTo(item *Item, refresh bool) ([]*Item, error) {
 	for _, p := range prs {
 		items = append(items, newItem(
 			p.Id(),
-			p.Branch(),
 			p.Title(),
+			p.Branch(),
 			p.Body(),
 			p.State().String(),
 			p.LinkId(),
