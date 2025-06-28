@@ -6,15 +6,15 @@ import (
 
 /* COLORS */
 var (
-	pink     = lipgloss.Color("205")
-	darkGrey = lipgloss.Color("245")
-	grey     = lipgloss.Color("241")
-	purple   = lipgloss.Color("57")
-	white    = lipgloss.Color("255")
+	pink      = lipgloss.Color("#FF5C8A")
+	darkGrey  = lipgloss.Color("#3C3C43")
+	lightGrey = lipgloss.Color("#D1D5DB")
+	purple    = lipgloss.Color("#7C3AED")
+	white     = lipgloss.Color("#FFFFFF")
 )
 
 var labelColor = map[string]lipgloss.Color{
-	"draft":    grey,
+	"draft":    lightGrey,
 	"open":     pink,
 	"merged":   purple,
 	"released": darkGrey,
@@ -26,31 +26,41 @@ var (
 	unfocussedStyle = lipgloss.NewStyle().
 			Padding(1, 2).
 			BorderStyle(lipgloss.RoundedBorder()).
-			BorderForeground(grey)
+			BorderForeground(darkGrey)
 	focussedStyle = unfocussedStyle.
 			BorderForeground(pink)
 )
 
-/* TEXT */
+/* LIST */
 var (
-	titleStyle = lipgloss.NewStyle().
+	listHeaderStyle = lipgloss.NewStyle().
 			Background(purple).
 			Foreground(white).
-			Align(lipgloss.Center).
 			Padding(0, 1)
-	labelStyle = lipgloss.NewStyle().
-			Foreground(white).
-			Padding(0, 1)
-	listItemStyle = lipgloss.NewStyle().
+	listTitleStyle = lipgloss.NewStyle().
+			Foreground(lightGrey).
+			Width(16)
+	listDescStyle = lipgloss.NewStyle().
 			Foreground(darkGrey)
-	selectedStyle = listItemStyle.
-			Foreground(white)
+	selectedTitleStyle = lipgloss.NewStyle().
+				Foreground(white).
+				Width(16)
+	selectedDescStyle = lipgloss.NewStyle().
+				Foreground(lightGrey)
 	helpStyle = lipgloss.NewStyle().
 			Foreground(darkGrey)
 )
 
-/* TABLE */
-var ()
+/* DETAIL */
+var (
+	labelStyle = lipgloss.NewStyle().
+			Foreground(white).
+			Padding(0, 1)
+	titleStyle = lipgloss.NewStyle().
+			Foreground(white)
+	subtitleStyle = lipgloss.NewStyle().
+			Foreground(lightGrey)
+)
 
 /* SPINNER */
 var (

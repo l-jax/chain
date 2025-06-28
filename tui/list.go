@@ -15,15 +15,16 @@ type listModel struct {
 
 func newList() tea.Model {
 	d := list.NewDefaultDelegate()
-	d.Styles.NormalTitle = listItemStyle.Width(16)
-	d.Styles.SelectedTitle = selectedStyle.Width(16)
-	d.Styles.NormalDesc = listItemStyle
-	d.Styles.SelectedDesc = listItemStyle
+	d.Styles.NormalTitle = listTitleStyle
+	d.Styles.SelectedTitle = selectedTitleStyle
+	d.Styles.NormalDesc = listDescStyle
+	d.Styles.SelectedDesc = selectedDescStyle
 
 	m := listModel{list: list.New([]list.Item{}, d, 18, 20)}
 
 	m.list.SetShowHelp(false)
 	m.list.Title = "pull requests"
+	m.list.Styles.Title = listHeaderStyle
 	m.list.Styles.NoItems = helpStyle
 
 	m.loaded = true

@@ -115,8 +115,8 @@ func (m Model) View() string {
 			list,
 			lipgloss.JoinVertical(
 				lipgloss.Left,
-				detail,
 				table,
+				detail,
 			),
 		),
 		helpStyle.Render(help),

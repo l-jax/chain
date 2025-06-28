@@ -46,7 +46,7 @@ func newTable() tableModel {
 		BorderBottom(true).
 		Bold(false)
 	style.Selected = style.Selected.
-		Foreground(grey).
+		Foreground(lightGrey).
 		Background(purple).
 		Bold(false)
 	t.SetStyles(style)
