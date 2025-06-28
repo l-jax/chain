@@ -12,7 +12,7 @@ type view uint
 const (
 	listView view = iota
 	detailView
-	chainView
+	tableView
 )
 
 type Model struct {
@@ -31,7 +31,7 @@ func InitModel() (tea.Model, error) {
 	}
 	m.models[listView] = newList()
 	m.models[detailView] = newDetail()
-	m.models[chainView] = newChain()
+	m.models[tableView] = newTable()
 	return m, nil
 }
 
@@ -46,7 +46,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, keys.Enter):
 			return m, tea.Batch(
-				m.loadChain,
+				m.loadTable,
 				m.loadDetail,
 			)
 
@@ -80,7 +80,7 @@ func (m Model) View() string {
 
 	list := m.models[listView].View()
 	detail := m.models[detailView].View()
-	chain := m.models[chainView].View()
+	table := m.models[tableView].View()
 	help := m.help.View(keys)
 
 	return lipgloss.JoinVertical(
@@ -91,7 +91,7 @@ func (m Model) View() string {
 			lipgloss.JoinVertical(
 				lipgloss.Left,
 				unfocussedStyle.Render(detail),
-				unfocussedStyle.Render(chain),
+				unfocussedStyle.Render(table),
 			),
 		),
 		helpStyle.Render(help),
@@ -106,7 +106,7 @@ func (m Model) loadList() tea.Msg {
 	return listMsg{items: items}
 }
 
-func (m Model) loadChain() tea.Msg {
+func (m Model) loadTable() tea.Msg {
 	if m.models[listView].(listModel).list.SelectedItem() == nil {
 		return nil
 	}
@@ -121,7 +121,7 @@ func (m Model) loadChain() tea.Msg {
 	if err != nil {
 		return errMsg{err: err}
 	}
-	return chainMsg{items: items}
+	return tableMsg{items: items}
 }
 
 func (m Model) loadDetail() tea.Msg {

@@ -8,7 +8,7 @@ type detailMsg struct {
 	item *Item
 }
 
-type chainMsg struct {
+type tableMsg struct {
 	items []*Item
 }
 

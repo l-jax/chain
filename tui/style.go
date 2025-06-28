@@ -6,18 +6,17 @@ import (
 
 /* COLORS */
 var (
-	purple   = lipgloss.Color("99")
 	pink     = lipgloss.Color("205")
 	darkGrey = lipgloss.Color("245")
 	grey     = lipgloss.Color("241")
-	white    = lipgloss.Color("255")
+	purple   = lipgloss.Color("57")
 )
 
 var labelColor = map[string]lipgloss.Color{
 	"open":     purple,
 	"merged":   grey,
 	"released": darkGrey,
-	"closed":   white,
+	"closed":   purple,
 	"blocked":  pink,
 }
 
@@ -35,21 +34,30 @@ var (
 var (
 	headerStyle = lipgloss.NewStyle().
 			Background(grey).
-			Foreground(white).
+			Foreground(purple).
 			Align(lipgloss.Center).
 			Padding(0, 1)
 	labelStyle = lipgloss.NewStyle().
 			Background(pink).
-			Foreground(white).
+			Foreground(purple).
 			Padding(0, 1)
 	titleStyle = lipgloss.NewStyle().
 			Foreground(darkGrey).
 			Bold(true)
 	selectedStyle = lipgloss.NewStyle().
-			Foreground(white).
+			Foreground(purple).
 			Bold(true)
 	bodyStyle = lipgloss.NewStyle().
 			Foreground(darkGrey)
 	helpStyle = lipgloss.NewStyle().
 			Foreground(darkGrey)
+)
+
+/* TABLE */
+var ()
+
+/* SPINNER */
+var (
+	spinnerStyle = lipgloss.NewStyle().
+		Foreground(pink)
 )

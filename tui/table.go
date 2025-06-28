@@ -9,7 +9,12 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type chainModel struct {
+const (
+	tableWidth  = 40
+	tableHeight = 5
+)
+
+type tableModel struct {
 	items   []*Item
 	table   table.Model
 	spinner spinner.Model
@@ -17,10 +22,9 @@ type chainModel struct {
 	err     error
 }
 
-func newChain() chainModel {
-	s := spinner.New()
-	s.Spinner = spinner.Ellipsis
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+func newTable() tableModel {
+	s := spinner.New(spinner.WithSpinner(spinner.Ellipsis))
+	s.Style = spinnerStyle
 
 	columns := []table.Column{
 		{Title: "id", Width: 5},
@@ -30,29 +34,41 @@ func newChain() chainModel {
 
 	t := table.New(
 		table.WithFocused(false),
-		table.WithHeight(6),
-		table.WithWidth(40),
+		table.WithHeight(tableHeight),
+		table.WithWidth(tableWidth),
 		table.WithColumns(columns),
 	)
 
-	return chainModel{
+	style := table.DefaultStyles()
+	style.Header = style.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(purple).
+		BorderBottom(true).
+		Bold(false)
+	style.Selected = style.Selected.
+		Foreground(grey).
+		Background(purple).
+		Bold(false)
+	t.SetStyles(style)
+
+	return tableModel{
 		spinner: s,
 		table:   t,
 	}
 }
 
-func (m chainModel) Init() tea.Cmd {
+func (m tableModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m chainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case detailMsg:
 		m.loading = true
 		return m, m.spinner.Tick
 
-	case chainMsg:
+	case tableMsg:
 		m.items = msg.items
 		m.SetItems(m.items)
 		m.loading = false
@@ -68,7 +84,7 @@ func (m chainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m chainModel) View() string {
+func (m tableModel) View() string {
 	if m.err != nil {
 		return "Error: " + m.err.Error()
 	}
@@ -88,7 +104,7 @@ func (m chainModel) View() string {
 	return m.table.View()
 }
 
-func (m *chainModel) SetItems(items []*Item) {
+func (m *tableModel) SetItems(items []*Item) {
 	rows := make([]table.Row, len(items))
 	for i, item := range items {
 		rows[i] = []string{
