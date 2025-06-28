@@ -11,7 +11,7 @@ import (
 const (
 	releasedLabel   = "RELEASED"
 	blockedLabel    = "DO NOT MERGE"
-	linkedPrPattern = `do not merge until #(\d+)`
+	linkedPrPattern = `(?i)do not merge until #(\d+)`
 )
 
 func mapPr(pr *github.PullRequest) (*Pr, error) {

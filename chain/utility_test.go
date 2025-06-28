@@ -71,3 +71,14 @@ func TestFindLink(t *testing.T) {
 		t.Errorf("got %q want %q", got, want)
 	}
 }
+
+func TestFindLinkCaseInsensitive(t *testing.T) {
+	body := "do nOt MERGE until #123 is released"
+	want := uint(123)
+
+	got := findLinkedPr(body)
+
+	if got != want {
+		t.Errorf("got %q want %q", got, want)
+	}
+}
