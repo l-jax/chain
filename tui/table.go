@@ -62,9 +62,10 @@ func (m tableModel) Init() tea.Cmd {
 }
 
 func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
 	switch msg := msg.(type) {
 
-	case detailMsg:
+	case tableLoadMsg:
 		m.loading = true
 		return m, m.spinner.Tick
 
@@ -83,10 +84,21 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 	}
+
+	var cmds []tea.Cmd
 	var cmd tea.Cmd
 	m.table, cmd = m.table.Update(msg)
+	cmds = append(cmds, cmd)
 
-	return m, cmd
+	if m.table.Focused() {
+		cmds = append(cmds, func() tea.Msg {
+			return detailMsg{
+				item: m.items[m.table.Cursor()],
+			}
+		})
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m tableModel) View() string {

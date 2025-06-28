@@ -10,6 +10,8 @@ type detailMsg struct {
 	item *Item
 }
 
+type tableLoadMsg struct{}
+
 type tableMsg struct {
 	items []*Item
 }

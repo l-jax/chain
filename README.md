@@ -22,5 +22,5 @@ It builds a chain of linked changes for each open pull request, and displays the
 
 - [ ] Make labels user configurable
 - [ ] Display chained PRs `mergeable` or `blocked` based on status and labels of linked PRs
-- [ ] Switch focus between list and table
-- [ ] View detail for selected table row
+- [x] Switch focus between list and table
+- [x] View detail for selected table row

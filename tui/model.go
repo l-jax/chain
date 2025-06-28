@@ -50,6 +50,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.focussed == listView {
 				m.focussed = tableView
 				return m, tea.Batch(
+					func() tea.Msg {
+						return tableLoadMsg{}
+					},
 					m.loadTable,
 					m.loadDetail,
 				)
