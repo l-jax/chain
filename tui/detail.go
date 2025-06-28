@@ -72,6 +72,6 @@ func (m detailModel) headerView() string {
 			lipgloss.NewStyle().Width(titlePadding).Render(" "),
 			labelStyle.Background(labelColor[m.item.Label()]).Render(m.item.Label()),
 		),
-		bodyStyle.Render(m.item.Description()),
+		helpStyle.Render(m.item.Description()),
 	)
 }

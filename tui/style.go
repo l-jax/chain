@@ -10,14 +10,15 @@ var (
 	darkGrey = lipgloss.Color("245")
 	grey     = lipgloss.Color("241")
 	purple   = lipgloss.Color("57")
+	white    = lipgloss.Color("255")
 )
 
 var labelColor = map[string]lipgloss.Color{
-	"open":     purple,
-	"merged":   grey,
+	"draft":    grey,
+	"open":     pink,
+	"merged":   purple,
 	"released": darkGrey,
-	"closed":   purple,
-	"blocked":  pink,
+	"closed":   darkGrey,
 }
 
 /* PANE */
@@ -32,23 +33,18 @@ var (
 
 /* TEXT */
 var (
-	headerStyle = lipgloss.NewStyle().
-			Background(grey).
-			Foreground(purple).
+	titleStyle = lipgloss.NewStyle().
+			Background(purple).
+			Foreground(white).
 			Align(lipgloss.Center).
 			Padding(0, 1)
 	labelStyle = lipgloss.NewStyle().
-			Background(pink).
-			Foreground(purple).
+			Foreground(white).
 			Padding(0, 1)
-	titleStyle = lipgloss.NewStyle().
-			Foreground(darkGrey).
-			Bold(true)
-	selectedStyle = lipgloss.NewStyle().
-			Foreground(purple).
-			Bold(true)
-	bodyStyle = lipgloss.NewStyle().
+	listItemStyle = lipgloss.NewStyle().
 			Foreground(darkGrey)
+	selectedStyle = listItemStyle.
+			Foreground(white)
 	helpStyle = lipgloss.NewStyle().
 			Foreground(darkGrey)
 )

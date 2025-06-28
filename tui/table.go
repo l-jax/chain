@@ -126,7 +126,7 @@ func (m *tableModel) SetItems(items []*Item) {
 	for i, item := range items {
 		rows[i] = []string{
 			strconv.FormatUint(uint64(item.Id()), 10),
-			item.Title(),
+			item.Description(),
 			item.Label(),
 		}
 	}
