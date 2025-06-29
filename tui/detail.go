@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -63,6 +65,13 @@ func (m detailModel) headerView() string {
 		return "\n"
 	}
 	titlePadding := detailWidth - 2 - len(m.item.Title()) - len(m.item.Label())
+	var blocked string
+	if m.item.Blocked() {
+		str := "blocked by #" + fmt.Sprint(m.item.DependsOn())
+		blocked = labelStyle.Background(labelColor["blocked"]).Render(str)
+	} else {
+		blocked = ""
+	}
 
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
@@ -72,6 +81,6 @@ func (m detailModel) headerView() string {
 			lipgloss.NewStyle().Width(titlePadding).Render(" "),
 			labelStyle.Background(labelColor[m.item.Label()]).Render(m.item.Label()),
 		),
-		subtitleStyle.Render(m.item.Description()),
+		blocked,
 	)
 }

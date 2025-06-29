@@ -7,9 +7,10 @@ type Item struct {
 	text        string
 	label       string
 	dependsOn   uint
+	blocked     bool
 }
 
-func newItem(id uint, title string, description string, text string, label string, dependsOn uint) *Item {
+func newItem(id uint, title string, description string, text string, label string, dependsOn uint, blocked bool) *Item {
 	return &Item{
 		id:          id,
 		title:       title,
@@ -17,6 +18,7 @@ func newItem(id uint, title string, description string, text string, label strin
 		text:        text,
 		label:       label,
 		dependsOn:   dependsOn,
+		blocked:     blocked,
 	}
 }
 
@@ -27,3 +29,4 @@ func (i Item) Text() string        { return i.text }
 func (i Item) Label() string       { return i.label }
 func (i Item) Id() uint            { return i.id }
 func (i Item) DependsOn() uint     { return i.dependsOn }
+func (i Item) Blocked() bool       { return i.blocked }

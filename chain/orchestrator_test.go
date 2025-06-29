@@ -8,7 +8,7 @@ import (
 func TestListOpenPrs(t *testing.T) {
 	prs := []*github.PullRequest{
 		github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, []string{}, 12),
-		github.NewPullRequest("do something", "branch", "do not merge until #11 is released", github.StateOpen, []string{"DO NOT MERGE"}, 14),
+		github.NewPullRequest("do something", "branch", "some description", github.StateOpen, []string{"DO NOT MERGE"}, 14),
 	}
 	service := &serviceFake{prs: prs}
 
@@ -70,6 +70,40 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 
 	if err.Error() != ErrLoopedChain.Error() {
 		t.Fatalf("expected error %v, got %v", ErrLoopedChain, err)
+	}
+}
+
+var linkRetrievalTests = map[string]struct {
+	label   string
+	blocked bool
+}{
+	"Blocked":     {label: "", blocked: true},
+	"Not blocked": {label: releasedLabel, blocked: false},
+}
+
+func TestLinkRetrieval(t *testing.T) {
+	for name, test := range linkRetrievalTests {
+		t.Run(name, func(t *testing.T) {
+			pr := github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, []string{}, 12)
+			linkedPr := github.NewPullRequest("do something", "branch", "some description", github.StateMerged, []string{test.label}, 14)
+
+			service := &serviceFake{prs: []*github.PullRequest{pr, linkedPr}}
+			handler := Orchestrator{gitHubAdaptor: service}
+
+			mappedPr, err := handler.linkPr(pr)
+
+			if err != nil {
+				t.Fatalf("expected no error, got %v", err)
+			}
+
+			if mappedPr.LinkId() != linkedPr.Number() {
+				t.Fatalf("expected linked PR id %d, got %d", linkedPr.Number(), mappedPr.LinkId())
+			}
+
+			if mappedPr.Blocked() != test.blocked {
+				t.Fatalf("expected blocked to be %v, got %v", test.blocked, mappedPr.Blocked())
+			}
+		})
 	}
 }
 
