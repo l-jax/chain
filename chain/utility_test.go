@@ -37,21 +37,18 @@ func TestMapPr(t *testing.T) {
 
 func TestMapState(t *testing.T) {
 	tests := []struct {
-		name   string
-		state  github.State
-		labels []string
-		want   state
+		name  string
+		state github.State
+		want  state
 	}{
-		{"draft", github.StateDraft, []string{}, draft},
-		{"open", github.StateOpen, []string{}, open},
-		{"closed", github.StateClosed, []string{}, closed},
-		{"merged without released label", github.StateMerged, []string{}, merged},
-		{"merged with released label", github.StateMerged, []string{releasedLabel}, released},
-	}
+		{"draft", github.StateDraft, draft},
+		{"open", github.StateOpen, open},
+		{"closed", github.StateClosed, closed},
+		{"merged without released label", github.StateMerged, merged}}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := mapState(tt.state, tt.labels)
+			got, err := mapState(tt.state, []string{})
 			if err != nil {
 				t.Fatalf("%s: expected no error, got %v", tt.name, err)
 			}

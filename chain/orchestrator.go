@@ -12,12 +12,14 @@ type gitHubAdaptor interface {
 
 type Orchestrator struct {
 	gitHubAdaptor gitHubAdaptor
+	targetLabel   string
 }
 
-func InitOrchestrator() *Orchestrator {
+func InitOrchestrator(label string) *Orchestrator {
 	adaptor := github.NewAdaptor()
 	return &Orchestrator{
 		gitHubAdaptor: adaptor,
+		targetLabel:   label,
 	}
 }
 
@@ -78,7 +80,7 @@ func (o *Orchestrator) linkPr(gitHubPr *github.PullRequest) (*Pr, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
 		}
-		if linkedPr.Labels() != nil && !labelsContains(linkedPr.Labels(), releasedLabel) {
+		if linkedPr.Labels() != nil && !labelsContains(linkedPr.Labels(), o.targetLabel) {
 			blocked = true
 		}
 	}

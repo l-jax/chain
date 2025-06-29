@@ -5,16 +5,18 @@ import (
 	"testing"
 )
 
+const targetLabel = "RELEASED"
+
 func TestListOpenPrs(t *testing.T) {
 	prs := []*github.PullRequest{
 		github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, []string{}, 12),
-		github.NewPullRequest("do something", "branch", "some description", github.StateOpen, []string{"DO NOT MERGE"}, 14),
+		github.NewPullRequest("do something", "branch", "some description", github.StateOpen, []string{targetLabel}, 14),
 	}
 	service := &serviceFake{prs: prs}
 
-	handler := Orchestrator{gitHubAdaptor: service}
+	orchestrator := Orchestrator{gitHubAdaptor: service}
 
-	got, err := handler.ListOpenPrs()
+	got, err := orchestrator.ListOpenPrs()
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -34,9 +36,9 @@ func TestGetPrsLinkedTo(t *testing.T) {
 	}
 
 	service := &serviceFake{prs: []*github.PullRequest{unrelatedPr, linkedPrs[0], linkedPrs[1], linkedPrs[2]}}
-	handler := Orchestrator{gitHubAdaptor: service}
+	orchestrator := Orchestrator{gitHubAdaptor: service}
 
-	got, err := handler.GetPrsLinkedTo(12)
+	got, err := orchestrator.GetPrsLinkedTo(12)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -60,9 +62,9 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 	}
 
 	service := &serviceFake{prs: prs}
-	handler := Orchestrator{gitHubAdaptor: service}
+	orchestrator := Orchestrator{gitHubAdaptor: service}
 
-	_, err := handler.GetPrsLinkedTo(12)
+	_, err := orchestrator.GetPrsLinkedTo(12)
 
 	if err == nil {
 		t.Fatalf("expected error")
@@ -78,7 +80,7 @@ var linkRetrievalTests = map[string]struct {
 	blocked bool
 }{
 	"Blocked":     {label: "", blocked: true},
-	"Not blocked": {label: releasedLabel, blocked: false},
+	"Not blocked": {label: "RELEASED", blocked: false},
 }
 
 func TestLinkRetrieval(t *testing.T) {
@@ -88,9 +90,9 @@ func TestLinkRetrieval(t *testing.T) {
 			linkedPr := github.NewPullRequest("do something", "branch", "some description", github.StateMerged, []string{test.label}, 14)
 
 			service := &serviceFake{prs: []*github.PullRequest{pr, linkedPr}}
-			handler := Orchestrator{gitHubAdaptor: service}
+			orchestrator := Orchestrator{gitHubAdaptor: service, targetLabel: "RELEASED"}
 
-			mappedPr, err := handler.linkPr(pr)
+			mappedPr, err := orchestrator.linkPr(pr)
 
 			if err != nil {
 				t.Fatalf("expected no error, got %v", err)

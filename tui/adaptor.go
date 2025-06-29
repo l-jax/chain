@@ -10,7 +10,7 @@ type adaptor struct {
 
 func newAdaptor() *adaptor {
 	return &adaptor{
-		orchestrator: chain.InitOrchestrator(),
+		orchestrator: chain.InitOrchestrator("RELEASED"),
 		items:        []*Item{},
 		linkedItems:  make(map[uint][]*Item),
 	}

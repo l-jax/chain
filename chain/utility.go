@@ -8,10 +8,7 @@ import (
 	"strings"
 )
 
-const (
-	releasedLabel   = "RELEASED"
-	linkedPrPattern = `(?i)do not merge until #(\d+)`
-)
+const linkedPrPattern = `(?i)do not merge until #(\d+)`
 
 func mapGitHubPullRequest(pr *github.PullRequest, linkId uint, blocked bool) (*Pr, error) {
 	state, err := mapState(pr.State(), pr.Labels())
@@ -40,9 +37,6 @@ func mapState(state github.State, labels []string) (state, error) {
 	case github.StateClosed:
 		return closed, nil
 	case github.StateMerged:
-		if labelsContains(labels, releasedLabel) {
-			return released, nil
-		}
 		return merged, nil
 	default:
 		return 0, fmt.Errorf("%w: %s", ErrUnexpectedState, state)
