@@ -1,19 +1,23 @@
 package tui
 
-import "chain/chain"
+import (
+	"chain/chain"
+)
 
 type adaptor struct {
 	orchestrator *chain.Orchestrator
+	targetLabel  string
 }
 
 func newAdaptor(targetLabel string) *adaptor {
 	return &adaptor{
 		orchestrator: chain.InitOrchestrator(targetLabel),
+		targetLabel:  targetLabel,
 	}
 }
 
-func (h *adaptor) ListItems() ([]*Item, error) {
-	prs, err := h.orchestrator.ListOpenPrs()
+func (a *adaptor) ListItems() ([]*Item, error) {
+	prs, err := a.orchestrator.ListOpenPrs()
 	if err != nil {
 		return nil, err
 	}
@@ -28,6 +32,7 @@ func (h *adaptor) ListItems() ([]*Item, error) {
 			pr.State().String(),
 			pr.LinkId(),
 			pr.Blocked(),
+			pr.HasLabel(a.targetLabel),
 		)
 		items = append(items, item)
 	}
@@ -35,8 +40,8 @@ func (h *adaptor) ListItems() ([]*Item, error) {
 	return items, nil
 }
 
-func (h *adaptor) GetItemsLinkedTo(item *Item) ([]*Item, error) {
-	prs, err := h.orchestrator.GetPrsLinkedTo(item.Id())
+func (a *adaptor) GetItemsLinkedTo(item *Item) ([]*Item, error) {
+	prs, err := a.orchestrator.GetPrsLinkedTo(item.Id())
 	if err != nil {
 		return nil, err
 	}
@@ -51,6 +56,7 @@ func (h *adaptor) GetItemsLinkedTo(item *Item) ([]*Item, error) {
 			p.State().String(),
 			p.LinkId(),
 			p.Blocked(),
+			p.HasLabel(a.targetLabel),
 		))
 	}
 	return items, nil

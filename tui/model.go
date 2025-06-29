@@ -33,7 +33,7 @@ func InitModel(targetLabel string) (tea.Model, error) {
 		help:        help.New(),
 	}
 	m.models[listView] = newList()
-	m.models[detailView] = newDetail()
+	m.models[detailView] = newDetail(targetLabel)
 	m.models[tableView] = newTable()
 	m.focussed = listView
 	return m, nil

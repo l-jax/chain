@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"sort"
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -26,6 +27,7 @@ func newTable() tableModel {
 		{Title: "id", Width: 5},
 		{Title: "branch", Width: 20},
 		{Title: "state", Width: 7},
+		{Title: " ", Width: 1},
 	}
 
 	t := table.New(
@@ -83,6 +85,7 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.SetItems(m.items)
 		m.loading = false
 		m.table.Focus()
+		m.table.SetCursor(0)
 
 	case resetMsg:
 		m.table.Blur()
@@ -98,7 +101,7 @@ func (m tableModel) View() string {
 
 	if m.loading {
 		m.table.SetRows([]table.Row{
-			{"?", "?", "?"},
+			{"?", "?", "?", "?"},
 		})
 		return m.table.View()
 	}
@@ -112,12 +115,24 @@ func (m tableModel) View() string {
 }
 
 func (m *tableModel) SetItems(items []*Item) {
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].DependsOn() > items[j].DependsOn()
+	})
+
 	rows := make([]table.Row, len(items))
 	for i, item := range items {
+		var ok string
+		if item.Blocked() || !item.HasTargetLabel() {
+			ok = "x"
+		} else {
+			ok = "✔"
+		}
+
 		rows[i] = []string{
 			strconv.FormatUint(uint64(item.Id()), 10),
 			item.Description(),
-			item.Label(),
+			item.State(),
+			ok,
 		}
 	}
 	m.table.SetRows(rows)

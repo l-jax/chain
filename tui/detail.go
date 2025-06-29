@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -9,21 +10,23 @@ import (
 )
 
 const (
-	detailWidth  = 40
+	detailWidth  = 41
 	detailHeight = 9
 )
 
 type detailModel struct {
-	item     *Item
-	viewport *viewport.Model
-	quitting bool
-	err      error
+	targetLabel string
+	item        *Item
+	viewport    *viewport.Model
+	quitting    bool
+	err         error
 }
 
-func newDetail() detailModel {
+func newDetail(targetLabel string) detailModel {
 	v := viewport.New(detailWidth, detailHeight-2)
 	return detailModel{
-		viewport: &v,
+		targetLabel: targetLabel,
+		viewport:    &v,
 	}
 }
 
@@ -64,7 +67,7 @@ func (m detailModel) headerView() string {
 	if m.item == nil {
 		return "\n"
 	}
-	titlePadding := detailWidth - 2 - len(m.item.Title()) - len(m.item.Label())
+
 	var blocked string
 	if m.item.Blocked() {
 		str := "blocked by #" + fmt.Sprint(m.item.DependsOn())
@@ -73,14 +76,21 @@ func (m detailModel) headerView() string {
 		blocked = ""
 	}
 
+	var target string
+	if m.item.HasTargetLabel() {
+		target = labelStyle.Background(darkGrey).Render(strings.ToLower(m.targetLabel))
+	} else {
+		target = ""
+	}
+
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
+		titleStyle.Render(m.item.Title()),
 		lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			titleStyle.Render(m.item.Title()),
-			lipgloss.NewStyle().Width(titlePadding).Render(" "),
-			labelStyle.Background(labelColor[m.item.Label()]).Render(m.item.Label()),
+			labelStyle.Background(labelColor[m.item.State()]).Render(m.item.State()),
+			target,
+			blocked,
 		),
-		blocked,
 	)
 }

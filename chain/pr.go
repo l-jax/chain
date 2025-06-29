@@ -1,5 +1,7 @@
 package chain
 
+import "strings"
+
 type Pr struct {
 	title  string
 	body   string
@@ -59,7 +61,7 @@ func (p Pr) HasLabel(label string) bool {
 		return false
 	}
 	for _, l := range p.labels {
-		if l == label {
+		if strings.EqualFold(l, label) {
 			return true
 		}
 	}
