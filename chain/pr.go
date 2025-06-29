@@ -4,6 +4,7 @@ type Pr struct {
 	title  string
 	body   string
 	branch string
+	labels []string
 	state  state
 	id     uint
 	link   *Link
@@ -14,13 +15,14 @@ type Link struct {
 	hasTargetLabel bool
 }
 
-func NewPr(title, body, branch string, id uint, state state, link *Link) *Pr {
+func NewPr(title, body, branch string, labels []string, id uint, state state, link *Link) *Pr {
 	return &Pr{
 		title:  title,
 		body:   body,
+		branch: branch,
+		labels: labels,
 		id:     id,
 		state:  state,
-		branch: branch,
 		link:   link,
 	}
 }
@@ -30,17 +32,38 @@ func (p Pr) Branch() string { return p.branch }
 func (p Pr) State() state   { return p.state }
 func (p Pr) Id() uint       { return p.id }
 func (p Pr) Body() string   { return p.body }
+
+func (p Pr) Labels() []string {
+	if p.labels == nil {
+		return []string{}
+	}
+	return p.labels
+}
+
 func (p Pr) LinkId() uint {
 	if p.link == nil {
 		return 0
 	}
 	return p.link.id
 }
+
 func (p Pr) Blocked() bool {
 	if p.link == nil {
 		return false
 	}
 	return !p.link.hasTargetLabel
+}
+
+func (p Pr) HasLabel(label string) bool {
+	if p.labels == nil {
+		return false
+	}
+	for _, l := range p.labels {
+		if l == label {
+			return true
+		}
+	}
+	return false
 }
 
 type state uint

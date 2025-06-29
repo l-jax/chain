@@ -20,6 +20,7 @@ func mapGitHubPullRequest(pr *github.PullRequest, link *Link) (*Pr, error) {
 		pr.Title(),
 		pr.Body(),
 		pr.Branch(),
+		pr.Labels(),
 		pr.Number(),
 		state,
 		link,
@@ -51,7 +52,7 @@ func labelsContains(labels []string, label string) bool {
 	return false
 }
 
-func findLinkedPr(body string) uint {
+func findLinkId(body string) uint {
 	re := regexp.MustCompile(linkedPrPattern)
 	match := re.FindStringSubmatch(body)
 

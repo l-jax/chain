@@ -24,6 +24,7 @@ func TestMapPr(t *testing.T) {
 		"Add feature",
 		"feature-branch",
 		"do not merge until #42 is released",
+		[]string{"DO NOT MERGE"},
 		41,
 		open,
 		link,
@@ -67,7 +68,7 @@ func TestFindLink(t *testing.T) {
 	body := "do not merge until #123 is released"
 	want := uint(123)
 
-	got := findLinkedPr(body)
+	got := findLinkId(body)
 
 	if got != want {
 		t.Errorf("got %q want %q", got, want)
@@ -78,7 +79,7 @@ func TestFindLinkCaseInsensitive(t *testing.T) {
 	body := "do nOt MERGE until #123 is released"
 	want := uint(123)
 
-	got := findLinkedPr(body)
+	got := findLinkId(body)
 
 	if got != want {
 		t.Errorf("got %q want %q", got, want)

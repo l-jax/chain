@@ -12,9 +12,12 @@ func TestListOpenPrs(t *testing.T) {
 		github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, []string{}, 12),
 		github.NewPullRequest("do something", "branch", "some description", github.StateOpen, []string{targetLabel}, 14),
 	}
-	service := &serviceFake{prs: prs}
 
-	orchestrator := Orchestrator{gitHubAdaptor: service}
+	orchestrator := Orchestrator{
+		gitHubAdaptor: &serviceFake{prs: prs},
+		targetLabel:   targetLabel,
+		prs:           make(map[uint]*Pr),
+	}
 
 	got, err := orchestrator.ListOpenPrs()
 	if err != nil {
@@ -35,8 +38,11 @@ func TestGetPrsLinkedTo(t *testing.T) {
 		github.NewPullRequest("", "", "do not merge until #11 is released", github.StateOpen, []string{"DO NOT MERGE"}, 14),
 	}
 
-	service := &serviceFake{prs: []*github.PullRequest{unrelatedPr, linkedPrs[0], linkedPrs[1], linkedPrs[2]}}
-	orchestrator := Orchestrator{gitHubAdaptor: service}
+	orchestrator := Orchestrator{
+		gitHubAdaptor: &serviceFake{prs: []*github.PullRequest{unrelatedPr, linkedPrs[0], linkedPrs[1], linkedPrs[2]}},
+		targetLabel:   targetLabel,
+		prs:           make(map[uint]*Pr),
+	}
 
 	got, err := orchestrator.GetPrsLinkedTo(12)
 
@@ -61,8 +67,11 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 		github.NewPullRequest("merge something", "my-branch", "do not merge until #12 is released", github.StateMerged, []string{}, 11),
 	}
 
-	service := &serviceFake{prs: prs}
-	orchestrator := Orchestrator{gitHubAdaptor: service}
+	orchestrator := Orchestrator{
+		gitHubAdaptor: &serviceFake{prs: prs},
+		targetLabel:   targetLabel,
+		prs:           make(map[uint]*Pr),
+	}
 
 	_, err := orchestrator.GetPrsLinkedTo(12)
 
@@ -76,11 +85,11 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 }
 
 var linkRetrievalTests = map[string]struct {
-	label   string
-	blocked bool
+	label          string
+	hasTargetLabel bool
 }{
-	"Blocked":     {label: "", blocked: true},
-	"Not blocked": {label: "RELEASED", blocked: false},
+	"Blocked":     {label: "", hasTargetLabel: false},
+	"Not blocked": {label: "RELEASED", hasTargetLabel: true},
 }
 
 func TestLinkRetrieval(t *testing.T) {
@@ -89,21 +98,24 @@ func TestLinkRetrieval(t *testing.T) {
 			pr := github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, []string{}, 12)
 			linkedPr := github.NewPullRequest("do something", "branch", "some description", github.StateMerged, []string{test.label}, 14)
 
-			service := &serviceFake{prs: []*github.PullRequest{pr, linkedPr}}
-			orchestrator := Orchestrator{gitHubAdaptor: service, targetLabel: "RELEASED"}
+			orchestrator := Orchestrator{
+				gitHubAdaptor: &serviceFake{prs: []*github.PullRequest{pr, linkedPr}},
+				targetLabel:   targetLabel,
+				prs:           make(map[uint]*Pr),
+			}
 
-			mappedPr, err := orchestrator.linkPr(pr)
+			link, err := orchestrator.getLink(linkedPr.Number())
 
 			if err != nil {
 				t.Fatalf("expected no error, got %v", err)
 			}
 
-			if mappedPr.LinkId() != linkedPr.Number() {
-				t.Fatalf("expected linked PR id %d, got %d", linkedPr.Number(), mappedPr.LinkId())
+			if link.id != linkedPr.Number() {
+				t.Fatalf("expected linked PR id %d, got %d", linkedPr.Number(), link.id)
 			}
 
-			if mappedPr.Blocked() != test.blocked {
-				t.Fatalf("expected blocked to be %v, got %v", test.blocked, mappedPr.Blocked())
+			if link.hasTargetLabel != test.hasTargetLabel {
+				t.Fatalf("expected blocked to be %v, got %v", test.hasTargetLabel, link.hasTargetLabel)
 			}
 		})
 	}
