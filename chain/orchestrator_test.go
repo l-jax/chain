@@ -89,6 +89,33 @@ func TestGetPrsLinkedToAllCached(t *testing.T) {
 	}
 }
 
+func TestGetPrWillCacheNewEntry(t *testing.T) {
+	prs := []*github.PullRequest{
+		github.NewPullRequest("add something", "my-branch", "something", github.StateOpen, []string{}, 12),
+	}
+
+	orchestrator := Orchestrator{
+		gitHubAdaptor: &serviceFake{prs: prs},
+		targetLabel:   targetLabel,
+		prs:           make(map[uint]*Pr),
+	}
+
+	pr, err := orchestrator.getPr(12)
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if pr.Id() != 12 {
+		t.Fatalf("expected PR id 12, got %d", pr.Id())
+	}
+
+	if orchestrator.prs[12] == nil {
+		t.Fatalf("expected PR to be cached, but it was not")
+	}
+
+}
+
 func TestGetChainErrorIfLooped(t *testing.T) {
 	prs := []*github.PullRequest{
 		github.NewPullRequest("add something", "my-branch", "do not merge until #11 is released", github.StateOpen, []string{}, 12),

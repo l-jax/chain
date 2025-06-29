@@ -86,7 +86,13 @@ func (o *Orchestrator) getPr(number uint) (*Pr, error) {
 		return nil, err
 	}
 
-	return mapGitHubPullRequest(gitHubPr, link)
+	mapped, err := mapGitHubPullRequest(gitHubPr, link)
+	if err != nil {
+		return nil, err
+	}
+
+	o.prs[mapped.Id()] = mapped
+	return mapped, nil
 }
 
 func (o *Orchestrator) getLink(linkId uint) (*Link, error) {
