@@ -22,9 +22,10 @@ func TestMapPr(t *testing.T) {
 		41,
 		42,
 		open,
+		true,
 	)
 
-	got, err := mapPr(pr)
+	got, err := mapPr(pr, 42, true)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

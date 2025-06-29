@@ -13,7 +13,7 @@ const (
 	linkedPrPattern = `(?i)do not merge until #(\d+)`
 )
 
-func mapPr(pr *github.PullRequest) (*Pr, error) {
+func mapPr(pr *github.PullRequest, linkId uint, blocked bool) (*Pr, error) {
 	state, err := mapState(pr.State(), pr.Labels())
 	if err != nil {
 		return nil, err
@@ -24,8 +24,9 @@ func mapPr(pr *github.PullRequest) (*Pr, error) {
 		pr.Body(),
 		pr.Branch(),
 		pr.Number(),
-		findLinkedPr(pr.Body()),
+		linkId,
 		state,
+		blocked,
 	)
 	return mapped, nil
 }

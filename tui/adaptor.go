@@ -35,6 +35,7 @@ func (h *adaptor) ListItems(refresh bool) ([]*Item, error) {
 			pr.Body(),
 			pr.State().String(),
 			pr.LinkId(),
+			pr.Blocked(),
 		)
 		h.items = append(h.items, item)
 	}
@@ -61,6 +62,7 @@ func (h *adaptor) GetItemsLinkedTo(item *Item, refresh bool) ([]*Item, error) {
 			p.Body(),
 			p.State().String(),
 			p.LinkId(),
+			p.Blocked(),
 		))
 	}
 

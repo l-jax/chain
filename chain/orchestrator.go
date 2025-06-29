@@ -30,9 +30,9 @@ func (o *Orchestrator) ListOpenPrs() ([]*Pr, error) {
 
 	prs := make([]*Pr, 0, len(gitHubPrs))
 	for _, pr := range gitHubPrs {
-		mapped, err := mapPr(pr)
+		mapped, err := o.mapPr(pr)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrFailedToMap, err)
+			return nil, err
 		}
 		prs = append(prs, mapped)
 	}
@@ -45,7 +45,6 @@ func (o *Orchestrator) GetPrsLinkedTo(number uint) (map[uint]*Pr, error) {
 
 	for number != 0 {
 		pr, err := o.getPr(number)
-
 		if err != nil {
 			return nil, err
 		}
@@ -55,8 +54,7 @@ func (o *Orchestrator) GetPrsLinkedTo(number uint) (map[uint]*Pr, error) {
 		}
 
 		linkedPrs[pr.Id()] = pr
-
-		number = findLinkedPr(pr.Body())
+		number = pr.LinkId()
 	}
 
 	return linkedPrs, nil
@@ -64,12 +62,28 @@ func (o *Orchestrator) GetPrsLinkedTo(number uint) (map[uint]*Pr, error) {
 
 func (o *Orchestrator) getPr(number uint) (*Pr, error) {
 	gitHubPr, err := o.gitHubAdaptor.GetPr(number)
-
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
 	}
 
-	pr, err := mapPr(gitHubPr)
+	return o.mapPr(gitHubPr)
+}
+
+func (o *Orchestrator) mapPr(gitHubPr *github.PullRequest) (*Pr, error) {
+	linkId := findLinkedPr(gitHubPr.Body())
+	blocked := false
+
+	if linkId != 0 {
+		linkedPr, err := o.gitHubAdaptor.GetPr(linkId)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
+		}
+		if linkedPr.Labels() != nil && !labelsContains(linkedPr.Labels(), releasedLabel) {
+			blocked = true
+		}
+	}
+
+	pr, err := mapPr(gitHubPr, linkId, blocked)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToMap, err)
 	}

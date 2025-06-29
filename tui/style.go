@@ -11,6 +11,7 @@ var (
 	lightGrey = lipgloss.Color("#D1D5DB")
 	purple    = lipgloss.Color("#7C3AED")
 	white     = lipgloss.Color("#FFFFFF")
+	green     = lipgloss.Color("#22C55E")
 )
 
 var labelColor = map[string]lipgloss.Color{
@@ -19,6 +20,7 @@ var labelColor = map[string]lipgloss.Color{
 	"merged":   purple,
 	"released": darkGrey,
 	"closed":   darkGrey,
+	"blocked":  green,
 }
 
 /* PANE */
