@@ -25,7 +25,7 @@ func TestMapPr(t *testing.T) {
 		true,
 	)
 
-	got, err := mapPr(pr, 42, true)
+	got, err := mapGitHubPullRequest(pr, 42, true)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
