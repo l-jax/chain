@@ -67,12 +67,11 @@ func (m detailModel) headerView() string {
 	titlePadding := detailWidth - 2 - len(m.item.Title()) - len(m.item.Label())
 	var blocked string
 	if m.item.Blocked() {
-		blocked = "blocked by #" + fmt.Sprint(m.item.DependsOn())
+		str := "blocked by #" + fmt.Sprint(m.item.DependsOn())
+		blocked = labelStyle.Background(labelColor["blocked"]).Render(str)
 	} else {
 		blocked = ""
 	}
-
-	subtitlePadding := detailWidth - 2 - len(m.item.Description()) - len(blocked)
 
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
@@ -82,11 +81,6 @@ func (m detailModel) headerView() string {
 			lipgloss.NewStyle().Width(titlePadding).Render(" "),
 			labelStyle.Background(labelColor[m.item.Label()]).Render(m.item.Label()),
 		),
-		lipgloss.JoinHorizontal(
-			lipgloss.Left,
-			subtitleStyle.Render(m.item.Description()),
-			lipgloss.NewStyle().Width(subtitlePadding).Render(" "),
-			labelStyle.Render(blocked),
-		),
+		blocked,
 	)
 }
