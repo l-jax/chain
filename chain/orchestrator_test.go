@@ -5,16 +5,21 @@ import (
 	"testing"
 )
 
+const targetLabel = "RELEASED"
+
 func TestListOpenPrs(t *testing.T) {
 	prs := []*github.PullRequest{
 		github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, []string{}, 12),
-		github.NewPullRequest("do something", "branch", "some description", github.StateOpen, []string{"DO NOT MERGE"}, 14),
+		github.NewPullRequest("do something", "branch", "some description", github.StateOpen, []string{targetLabel}, 14),
 	}
-	service := &serviceFake{prs: prs}
 
-	handler := Orchestrator{gitHubAdaptor: service}
+	orchestrator := Orchestrator{
+		gitHubAdaptor: &serviceFake{prs: prs},
+		targetLabel:   targetLabel,
+		prs:           make(map[uint]*Pr),
+	}
 
-	got, err := handler.ListOpenPrs()
+	got, err := orchestrator.ListOpenPrs()
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -33,10 +38,13 @@ func TestGetPrsLinkedTo(t *testing.T) {
 		github.NewPullRequest("", "", "do not merge until #11 is released", github.StateOpen, []string{"DO NOT MERGE"}, 14),
 	}
 
-	service := &serviceFake{prs: []*github.PullRequest{unrelatedPr, linkedPrs[0], linkedPrs[1], linkedPrs[2]}}
-	handler := Orchestrator{gitHubAdaptor: service}
+	orchestrator := Orchestrator{
+		gitHubAdaptor: &serviceFake{prs: []*github.PullRequest{unrelatedPr, linkedPrs[0], linkedPrs[1], linkedPrs[2]}},
+		targetLabel:   targetLabel,
+		prs:           make(map[uint]*Pr),
+	}
 
-	got, err := handler.GetPrsLinkedTo(12)
+	got, err := orchestrator.GetPrsLinkedTo(12)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -53,16 +61,74 @@ func TestGetPrsLinkedTo(t *testing.T) {
 	}
 }
 
+func TestGetPrsLinkedToAllCached(t *testing.T) {
+	serviceSpy := &serviceSpy{}
+
+	cachedPrs := map[uint]*Pr{
+		12: NewPr("add something", "my-branch", "do not merge until #14 is released", []string{}, 12, open, &Link{14, true}),
+		14: NewPr("do something", "branch", "some description", []string{targetLabel}, 14, open, nil),
+	}
+
+	orchestrator := Orchestrator{
+		gitHubAdaptor: serviceSpy,
+		targetLabel:   targetLabel,
+		prs:           cachedPrs,
+	}
+
+	got, err := orchestrator.GetPrsLinkedTo(12)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(got) != len(cachedPrs) {
+		t.Fatalf("expected %d pull requests, got %d", len(cachedPrs), len(got))
+	}
+
+	if serviceSpy.calls != 0 {
+		t.Fatalf("expected no calls to GitHub service, got %d", serviceSpy.calls)
+	}
+}
+
+func TestGetPrWillCacheNewEntry(t *testing.T) {
+	prs := []*github.PullRequest{
+		github.NewPullRequest("add something", "my-branch", "something", github.StateOpen, []string{}, 12),
+	}
+
+	orchestrator := Orchestrator{
+		gitHubAdaptor: &serviceFake{prs: prs},
+		targetLabel:   targetLabel,
+		prs:           make(map[uint]*Pr),
+	}
+
+	pr, err := orchestrator.getPr(12)
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if pr.Id() != 12 {
+		t.Fatalf("expected PR id 12, got %d", pr.Id())
+	}
+
+	if orchestrator.prs[12] == nil {
+		t.Fatalf("expected PR to be cached, but it was not")
+	}
+
+}
+
 func TestGetChainErrorIfLooped(t *testing.T) {
 	prs := []*github.PullRequest{
 		github.NewPullRequest("add something", "my-branch", "do not merge until #11 is released", github.StateOpen, []string{}, 12),
 		github.NewPullRequest("merge something", "my-branch", "do not merge until #12 is released", github.StateMerged, []string{}, 11),
 	}
 
-	service := &serviceFake{prs: prs}
-	handler := Orchestrator{gitHubAdaptor: service}
+	orchestrator := Orchestrator{
+		gitHubAdaptor: &serviceFake{prs: prs},
+		targetLabel:   targetLabel,
+		prs:           make(map[uint]*Pr),
+	}
 
-	_, err := handler.GetPrsLinkedTo(12)
+	_, err := orchestrator.GetPrsLinkedTo(12)
 
 	if err == nil {
 		t.Fatalf("expected error")
@@ -74,11 +140,11 @@ func TestGetChainErrorIfLooped(t *testing.T) {
 }
 
 var linkRetrievalTests = map[string]struct {
-	label   string
-	blocked bool
+	label          string
+	hasTargetLabel bool
 }{
-	"Blocked":     {label: "", blocked: true},
-	"Not blocked": {label: releasedLabel, blocked: false},
+	"Blocked":     {label: "", hasTargetLabel: false},
+	"Not blocked": {label: "RELEASED", hasTargetLabel: true},
 }
 
 func TestLinkRetrieval(t *testing.T) {
@@ -87,21 +153,24 @@ func TestLinkRetrieval(t *testing.T) {
 			pr := github.NewPullRequest("add something", "my-branch", "do not merge until #14 is released", github.StateOpen, []string{}, 12)
 			linkedPr := github.NewPullRequest("do something", "branch", "some description", github.StateMerged, []string{test.label}, 14)
 
-			service := &serviceFake{prs: []*github.PullRequest{pr, linkedPr}}
-			handler := Orchestrator{gitHubAdaptor: service}
+			orchestrator := Orchestrator{
+				gitHubAdaptor: &serviceFake{prs: []*github.PullRequest{pr, linkedPr}},
+				targetLabel:   targetLabel,
+				prs:           make(map[uint]*Pr),
+			}
 
-			mappedPr, err := handler.linkPr(pr)
+			link, err := orchestrator.getLink(linkedPr.Number())
 
 			if err != nil {
 				t.Fatalf("expected no error, got %v", err)
 			}
 
-			if mappedPr.LinkId() != linkedPr.Number() {
-				t.Fatalf("expected linked PR id %d, got %d", linkedPr.Number(), mappedPr.LinkId())
+			if link.id != linkedPr.Number() {
+				t.Fatalf("expected linked PR id %d, got %d", linkedPr.Number(), link.id)
 			}
 
-			if mappedPr.Blocked() != test.blocked {
-				t.Fatalf("expected blocked to be %v, got %v", test.blocked, mappedPr.Blocked())
+			if link.hasTargetLabel != test.hasTargetLabel {
+				t.Fatalf("expected blocked to be %v, got %v", test.hasTargetLabel, link.hasTargetLabel)
 			}
 		})
 	}
@@ -122,5 +191,19 @@ func (a *serviceFake) GetPr(number uint) (*github.PullRequest, error) {
 		}
 
 	}
+	return nil, nil
+}
+
+type serviceSpy struct {
+	calls uint
+}
+
+func (s *serviceSpy) ListOpenPrs() ([]*github.PullRequest, error) {
+	s.calls++
+	return nil, nil
+}
+
+func (s *serviceSpy) GetPr(number uint) (*github.PullRequest, error) {
+	s.calls++
 	return nil, nil
 }

@@ -3,6 +3,7 @@ package tui
 import (
 	"strconv"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -56,8 +57,23 @@ func (m tableModel) Init() tea.Cmd {
 }
 
 func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, keys.Up):
+			m.table, _ = m.table.Update(msg)
+			if m.table.Focused() {
+				cmds = append(cmds, m.focusItem)
+			}
+		case key.Matches(msg, keys.Down):
+			m.table, _ = m.table.Update(msg)
+			if m.table.Focused() {
+				cmds = append(cmds, m.focusItem)
+			}
+		}
 
 	case tableLoadMsg:
 		m.loading = true
@@ -70,19 +86,6 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case resetMsg:
 		m.table.Blur()
-	}
-
-	var cmds []tea.Cmd
-	var cmd tea.Cmd
-	m.table, cmd = m.table.Update(msg)
-	cmds = append(cmds, cmd)
-
-	if m.table.Focused() {
-		cmds = append(cmds, func() tea.Msg {
-			return detailMsg{
-				item: m.items[m.table.Cursor()],
-			}
-		})
 	}
 
 	return m, tea.Batch(cmds...)
@@ -118,4 +121,10 @@ func (m *tableModel) SetItems(items []*Item) {
 		}
 	}
 	m.table.SetRows(rows)
+}
+
+func (m *tableModel) focusItem() tea.Msg {
+	return detailMsg{
+		item: m.items[m.table.Cursor()],
+	}
 }

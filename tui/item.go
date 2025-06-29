@@ -30,3 +30,4 @@ func (i Item) Label() string       { return i.label }
 func (i Item) Id() uint            { return i.id }
 func (i Item) DependsOn() uint     { return i.dependsOn }
 func (i Item) Blocked() bool       { return i.blocked }
+func (i Item) HasChain() bool      { return i.dependsOn != 0 }

@@ -3,6 +3,7 @@ package chain
 import (
 	"chain/github"
 	"fmt"
+	"slices"
 )
 
 type gitHubAdaptor interface {
@@ -11,13 +12,17 @@ type gitHubAdaptor interface {
 }
 
 type Orchestrator struct {
+	prs           map[uint]*Pr
 	gitHubAdaptor gitHubAdaptor
+	targetLabel   string
 }
 
-func InitOrchestrator() *Orchestrator {
+func InitOrchestrator(label string) *Orchestrator {
 	adaptor := github.NewAdaptor()
 	return &Orchestrator{
+		prs:           make(map[uint]*Pr),
 		gitHubAdaptor: adaptor,
+		targetLabel:   label,
 	}
 }
 
@@ -30,7 +35,12 @@ func (o *Orchestrator) ListOpenPrs() ([]*Pr, error) {
 
 	prs := make([]*Pr, 0, len(gitHubPrs))
 	for _, pr := range gitHubPrs {
-		mapped, err := o.linkPr(pr)
+		linkId := findLinkId(pr.Body())
+		link, err := o.getLink(linkId)
+		if err != nil {
+			return nil, err
+		}
+		mapped, err := mapGitHubPullRequest(pr, link)
 		if err != nil {
 			return nil, err
 		}
@@ -61,31 +71,56 @@ func (o *Orchestrator) GetPrsLinkedTo(number uint) (map[uint]*Pr, error) {
 }
 
 func (o *Orchestrator) getPr(number uint) (*Pr, error) {
+	if pr := o.prs[number]; pr != nil {
+		return pr, nil
+	}
+
 	gitHubPr, err := o.gitHubAdaptor.GetPr(number)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
 	}
 
-	return o.linkPr(gitHubPr)
+	linkId := findLinkId(gitHubPr.Body())
+	link, err := o.getLink(linkId)
+	if err != nil {
+		return nil, err
+	}
+
+	mapped, err := mapGitHubPullRequest(gitHubPr, link)
+	if err != nil {
+		return nil, err
+	}
+
+	o.prs[mapped.Id()] = mapped
+	return mapped, nil
 }
 
-func (o *Orchestrator) linkPr(gitHubPr *github.PullRequest) (*Pr, error) {
-	linkId := findLinkedPr(gitHubPr.Body())
-	blocked := false
-
-	if linkId != 0 {
-		linkedPr, err := o.gitHubAdaptor.GetPr(linkId)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
-		}
-		if linkedPr.Labels() != nil && !labelsContains(linkedPr.Labels(), releasedLabel) {
-			blocked = true
-		}
+func (o *Orchestrator) getLink(linkId uint) (*Link, error) {
+	if linkId == 0 {
+		return nil, nil
 	}
 
-	pr, err := mapGitHubPullRequest(gitHubPr, linkId, blocked)
+	if o.prs[linkId] != nil {
+		return &Link{
+			id:             linkId,
+			hasTargetLabel: o.prs[linkId].HasLabel(o.targetLabel),
+		}, nil
+	}
+
+	link, err := o.gitHubAdaptor.GetPr(linkId)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToMap, err)
+		return nil, fmt.Errorf("%w %d: %w", ErrFailedToFetch, linkId, err)
 	}
-	return pr, nil
+
+	hasTargetLabel := false
+	if link.Labels() != nil {
+		if slices.Contains(link.Labels(), o.targetLabel) {
+			hasTargetLabel = true
+		}
+	}
+
+	return &Link{
+		id:             linkId,
+		hasTargetLabel: hasTargetLabel,
+	}, nil
 }

@@ -16,19 +16,21 @@ const (
 )
 
 type Model struct {
-	models   []tea.Model
-	focussed view
-	adaptor  *adaptor
-	help     help.Model
-	err      error
-	quitting bool
+	targetLabel string
+	models      []tea.Model
+	focussed    view
+	adaptor     *adaptor
+	help        help.Model
+	err         error
+	quitting    bool
 }
 
-func InitModel() (tea.Model, error) {
+func InitModel(targetLabel string) (tea.Model, error) {
 	m := &Model{
-		adaptor: newAdaptor(),
-		models:  make([]tea.Model, 3),
-		help:    help.New(),
+		targetLabel: targetLabel,
+		adaptor:     newAdaptor(targetLabel),
+		models:      make([]tea.Model, 3),
+		help:        help.New(),
 	}
 	m.models[listView] = newList()
 	m.models[detailView] = newDetail()
@@ -124,7 +126,7 @@ func (m Model) View() string {
 }
 
 func (m Model) loadList() tea.Msg {
-	items, err := m.adaptor.ListItems(true)
+	items, err := m.adaptor.ListItems()
 	if err != nil {
 		return errMsg{err: err}
 	}
@@ -142,7 +144,7 @@ func (m Model) loadTable() tea.Msg {
 		return nil
 	}
 
-	items, err := m.adaptor.GetItemsLinkedTo(item, true)
+	items, err := m.adaptor.GetItemsLinkedTo(item)
 	if err != nil {
 		return errMsg{err: err}
 	}

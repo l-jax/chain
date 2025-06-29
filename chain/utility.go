@@ -8,13 +8,10 @@ import (
 	"strings"
 )
 
-const (
-	releasedLabel   = "RELEASED"
-	linkedPrPattern = `(?i)do not merge until #(\d+)`
-)
+const linkedPrPattern = `(?i)do not merge until #(\d+)`
 
-func mapGitHubPullRequest(pr *github.PullRequest, linkId uint, blocked bool) (*Pr, error) {
-	state, err := mapState(pr.State(), pr.Labels())
+func mapGitHubPullRequest(pr *github.PullRequest, link *Link) (*Pr, error) {
+	state, err := mapState(pr.State())
 	if err != nil {
 		return nil, err
 	}
@@ -23,15 +20,15 @@ func mapGitHubPullRequest(pr *github.PullRequest, linkId uint, blocked bool) (*P
 		pr.Title(),
 		pr.Body(),
 		pr.Branch(),
+		pr.Labels(),
 		pr.Number(),
-		linkId,
 		state,
-		blocked,
+		link,
 	)
 	return mapped, nil
 }
 
-func mapState(state github.State, labels []string) (state, error) {
+func mapState(state github.State) (state, error) {
 	switch state {
 	case github.StateDraft:
 		return draft, nil
@@ -40,9 +37,6 @@ func mapState(state github.State, labels []string) (state, error) {
 	case github.StateClosed:
 		return closed, nil
 	case github.StateMerged:
-		if labelsContains(labels, releasedLabel) {
-			return released, nil
-		}
 		return merged, nil
 	default:
 		return 0, fmt.Errorf("%w: %s", ErrUnexpectedState, state)
@@ -58,7 +52,7 @@ func labelsContains(labels []string, label string) bool {
 	return false
 }
 
-func findLinkedPr(body string) uint {
+func findLinkId(body string) uint {
 	re := regexp.MustCompile(linkedPrPattern)
 	match := re.FindStringSubmatch(body)
 
