@@ -10,8 +10,8 @@ import (
 
 const linkedPrPattern = `(?i)do not merge until #(\d+)`
 
-func mapGitHubPullRequest(pr *github.PullRequest, linkId uint, blocked bool) (*Pr, error) {
-	state, err := mapState(pr.State(), pr.Labels())
+func mapGitHubPullRequest(pr *github.PullRequest, link *Link) (*Pr, error) {
+	state, err := mapState(pr.State())
 	if err != nil {
 		return nil, err
 	}
@@ -21,14 +21,13 @@ func mapGitHubPullRequest(pr *github.PullRequest, linkId uint, blocked bool) (*P
 		pr.Body(),
 		pr.Branch(),
 		pr.Number(),
-		linkId,
 		state,
-		blocked,
+		link,
 	)
 	return mapped, nil
 }
 
-func mapState(state github.State, labels []string) (state, error) {
+func mapState(state github.State) (state, error) {
 	switch state {
 	case github.StateDraft:
 		return draft, nil

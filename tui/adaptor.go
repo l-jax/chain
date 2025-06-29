@@ -16,8 +16,8 @@ func newAdaptor(targetLabel string) *adaptor {
 	}
 }
 
-func (h *adaptor) ListItems(refresh bool) ([]*Item, error) {
-	if !refresh && len(h.items) > 0 {
+func (h *adaptor) ListItems() ([]*Item, error) {
+	if len(h.items) > 0 {
 		return h.items, nil
 	}
 
@@ -43,8 +43,8 @@ func (h *adaptor) ListItems(refresh bool) ([]*Item, error) {
 	return h.items, nil
 }
 
-func (h *adaptor) GetItemsLinkedTo(item *Item, refresh bool) ([]*Item, error) {
-	if !refresh && h.linkedItems[item.Id()] != nil {
+func (h *adaptor) GetItemsLinkedTo(item *Item) ([]*Item, error) {
+	if h.linkedItems[item.Id()] != nil {
 		return h.linkedItems[item.Id()], nil
 	}
 

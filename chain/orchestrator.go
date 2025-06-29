@@ -73,19 +73,28 @@ func (o *Orchestrator) getPr(number uint) (*Pr, error) {
 
 func (o *Orchestrator) linkPr(gitHubPr *github.PullRequest) (*Pr, error) {
 	linkId := findLinkedPr(gitHubPr.Body())
-	blocked := false
 
+	var link *Link
 	if linkId != 0 {
 		linkedPr, err := o.gitHubAdaptor.GetPr(linkId)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrFailedToFetch, err)
 		}
-		if linkedPr.Labels() != nil && !labelsContains(linkedPr.Labels(), o.targetLabel) {
-			blocked = true
+
+		if linkedPr != nil {
+			var hasTargetLabel bool
+			if linkedPr.Labels() != nil && labelsContains(linkedPr.Labels(), o.targetLabel) {
+				hasTargetLabel = true
+			}
+
+			link = &Link{
+				id:             linkedPr.Number(),
+				hasTargetLabel: hasTargetLabel,
+			}
 		}
 	}
 
-	pr, err := mapGitHubPullRequest(gitHubPr, linkId, blocked)
+	pr, err := mapGitHubPullRequest(gitHubPr, link)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToMap, err)
 	}

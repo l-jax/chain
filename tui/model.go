@@ -126,7 +126,7 @@ func (m Model) View() string {
 }
 
 func (m Model) loadList() tea.Msg {
-	items, err := m.adaptor.ListItems(true)
+	items, err := m.adaptor.ListItems()
 	if err != nil {
 		return errMsg{err: err}
 	}
@@ -144,7 +144,7 @@ func (m Model) loadTable() tea.Msg {
 		return nil
 	}
 
-	items, err := m.adaptor.GetItemsLinkedTo(item, true)
+	items, err := m.adaptor.GetItemsLinkedTo(item)
 	if err != nil {
 		return errMsg{err: err}
 	}

@@ -15,17 +15,21 @@ func TestMapPr(t *testing.T) {
 		41,
 	)
 
+	link := &Link{
+		id:             42,
+		hasTargetLabel: false,
+	}
+
 	want := NewPr(
 		"Add feature",
 		"feature-branch",
 		"do not merge until #42 is released",
 		41,
-		42,
 		open,
-		true,
+		link,
 	)
 
-	got, err := mapGitHubPullRequest(pr, 42, true)
+	got, err := mapGitHubPullRequest(pr, link)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -48,7 +52,7 @@ func TestMapState(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := mapState(tt.state, []string{})
+			got, err := mapState(tt.state)
 			if err != nil {
 				t.Fatalf("%s: expected no error, got %v", tt.name, err)
 			}
