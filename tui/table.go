@@ -122,8 +122,10 @@ func (m *tableModel) SetItems(items []*Item) {
 	rows := make([]table.Row, len(items))
 	for i, item := range items {
 		var ok string
-		if item.Blocked() || !item.HasTargetLabel() {
+		if item.Blocked() {
 			ok = "x"
+		} else if !item.HasTargetLabel() {
+			ok = "-"
 		} else {
 			ok = "✔"
 		}

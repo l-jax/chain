@@ -3,7 +3,7 @@ package chain
 import (
 	"chain/github"
 	"fmt"
-	"slices"
+	"strings"
 )
 
 type gitHubAdaptor interface {
@@ -114,8 +114,11 @@ func (o *Orchestrator) getLink(linkId uint) (*Link, error) {
 
 	hasTargetLabel := false
 	if link.Labels() != nil {
-		if slices.Contains(link.Labels(), o.targetLabel) {
-			hasTargetLabel = true
+		for _, label := range link.Labels() {
+			if strings.EqualFold(label, o.targetLabel) {
+				hasTargetLabel = true
+				break
+			}
 		}
 	}
 
