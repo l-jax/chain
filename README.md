@@ -22,7 +22,6 @@ To use **chain** you must have [gh cli](https://cli.github.com/) installed and a
 
 - [ ] Make the merge condition user-configurable
 - [ ] Show ✔️ or ✖️ in `Detail` view to indicate whether the merge condition has been met
-- [ ] Show loading spinners in `List` and `Table`
-- [ ] Reduce calls to GitHub API
+- [x] Reduce calls to GitHub API
 - [x] Switch focus between `List` and `Table`
 - [x] Update `Detail` for selected table row
