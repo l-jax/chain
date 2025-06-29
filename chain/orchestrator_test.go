@@ -61,6 +61,34 @@ func TestGetPrsLinkedTo(t *testing.T) {
 	}
 }
 
+func TestGetPrsLinkedToAllCached(t *testing.T) {
+	serviceSpy := &serviceSpy{}
+
+	cachedPrs := map[uint]*Pr{
+		12: NewPr("add something", "my-branch", "do not merge until #14 is released", []string{}, 12, open, &Link{14, true}),
+		14: NewPr("do something", "branch", "some description", []string{targetLabel}, 14, open, nil),
+	}
+
+	orchestrator := Orchestrator{
+		gitHubAdaptor: serviceSpy,
+		targetLabel:   targetLabel,
+		prs:           cachedPrs,
+	}
+
+	got, err := orchestrator.GetPrsLinkedTo(12)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(got) != len(cachedPrs) {
+		t.Fatalf("expected %d pull requests, got %d", len(cachedPrs), len(got))
+	}
+
+	if serviceSpy.calls != 0 {
+		t.Fatalf("expected no calls to GitHub service, got %d", serviceSpy.calls)
+	}
+}
+
 func TestGetChainErrorIfLooped(t *testing.T) {
 	prs := []*github.PullRequest{
 		github.NewPullRequest("add something", "my-branch", "do not merge until #11 is released", github.StateOpen, []string{}, 12),
@@ -136,5 +164,19 @@ func (a *serviceFake) GetPr(number uint) (*github.PullRequest, error) {
 		}
 
 	}
+	return nil, nil
+}
+
+type serviceSpy struct {
+	calls uint
+}
+
+func (s *serviceSpy) ListOpenPrs() ([]*github.PullRequest, error) {
+	s.calls++
+	return nil, nil
+}
+
+func (s *serviceSpy) GetPr(number uint) (*github.PullRequest, error) {
+	s.calls++
 	return nil, nil
 }
