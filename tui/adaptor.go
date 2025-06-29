@@ -4,29 +4,21 @@ import "chain/chain"
 
 type adaptor struct {
 	orchestrator *chain.Orchestrator
-	items        []*Item
-	linkedItems  map[uint][]*Item
 }
 
 func newAdaptor(targetLabel string) *adaptor {
 	return &adaptor{
 		orchestrator: chain.InitOrchestrator(targetLabel),
-		items:        []*Item{},
-		linkedItems:  make(map[uint][]*Item),
 	}
 }
 
 func (h *adaptor) ListItems() ([]*Item, error) {
-	if len(h.items) > 0 {
-		return h.items, nil
-	}
-
 	prs, err := h.orchestrator.ListOpenPrs()
 	if err != nil {
 		return nil, err
 	}
 
-	h.items = make([]*Item, 0, len(prs))
+	items := make([]*Item, 0, len(prs))
 	for _, pr := range prs {
 		item := newItem(
 			pr.Id(),
@@ -37,17 +29,13 @@ func (h *adaptor) ListItems() ([]*Item, error) {
 			pr.LinkId(),
 			pr.Blocked(),
 		)
-		h.items = append(h.items, item)
+		items = append(items, item)
 	}
 
-	return h.items, nil
+	return items, nil
 }
 
 func (h *adaptor) GetItemsLinkedTo(item *Item) ([]*Item, error) {
-	if h.linkedItems[item.Id()] != nil {
-		return h.linkedItems[item.Id()], nil
-	}
-
 	prs, err := h.orchestrator.GetPrsLinkedTo(item.Id())
 	if err != nil {
 		return nil, err
@@ -65,7 +53,5 @@ func (h *adaptor) GetItemsLinkedTo(item *Item) ([]*Item, error) {
 			p.Blocked(),
 		))
 	}
-
-	h.linkedItems[item.Id()] = items
 	return items, nil
 }
