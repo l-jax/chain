@@ -8,9 +8,9 @@ type adaptor struct {
 	linkedItems  map[uint][]*Item
 }
 
-func newAdaptor() *adaptor {
+func newAdaptor(targetLabel string) *adaptor {
 	return &adaptor{
-		orchestrator: chain.InitOrchestrator("RELEASED"),
+		orchestrator: chain.InitOrchestrator(targetLabel),
 		items:        []*Item{},
 		linkedItems:  make(map[uint][]*Item),
 	}
