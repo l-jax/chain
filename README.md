@@ -2,7 +2,7 @@
 
 **chain** is a command-line tool for visualising linked pull requests
 
-<img width="527" alt="image" src="https://github.com/user-attachments/assets/59e6cd85-6a3c-4ad4-bd42-15068279a8b5" />
+<img width="527" alt="image" src="https://github.com/user-attachments/assets/a97608ae-6684-45d9-891e-0155692771a2" />
 
 ## How does it work?
 
