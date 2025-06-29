@@ -77,7 +77,7 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.table, cmd = m.table.Update(msg)
 	cmds = append(cmds, cmd)
 
-	if m.table.Focused() {
+	if m.table.Focused() && len(m.items) > 0 && m.table.Cursor() < len(m.items) {
 		cmds = append(cmds, func() tea.Msg {
 			return detailMsg{
 				item: m.items[m.table.Cursor()],
